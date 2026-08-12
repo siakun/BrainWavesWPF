@@ -15,6 +15,108 @@
         <vm:WavesViewModel/>
     </Page.DataContext>
 
+    <Page.Resources>
+        <!--
+        헤더 파형이 흐르는 방식.
+        파형은 한 주기짜리 타일을 반복해 채우고, 재생 중에는 그 타일 브러시를 한 주기만큼
+        왼쪽으로 미는 동작을 되풀이한다. 타일이 끝없이 이어지므로 창을 넓혀도 오른쪽이 비지 않고,
+        한 주기를 다 민 자리는 출발한 자리와 모양이 같아 이음매가 드러나지 않는다.
+        멈출 때는 남은 주기를 마저 밀어 세운다. 그래야 멈추는 순간 파형이 제자리로 튀지 않고,
+        다시 재생할 때도 이어서 흐르는 것처럼 보인다.
+        브러시는 Rectangle이 아니라 Style의 Setter에 둔다. 재생 중에 이 페이지가 새로 만들어지면
+        Style을 붙이는 순간 DataTrigger가 곧바로 발동하는데, 요소에 직접 적은 Fill은 Style 특성보다
+        나중에 설정되므로 그 시점에는 아직 없다. 애니메이션이 브러시를 찾지 못해 예외가 난다.
+        Setter로 심은 값은 트리거가 도는 시점에 이미 자리를 잡고 있고, 요소마다 별개의 인스턴스로
+        만들어지므로 스타일을 나눠 써도 서로 간섭하지 않는다.
+        -->
+        <Style x:Key="BackWaveStyle" TargetType="Rectangle">
+            <Setter Property="Fill">
+                <Setter.Value>
+                    <DrawingBrush TileMode="Tile" Stretch="Fill"
+                                  Viewbox="0,0,400,80" ViewboxUnits="Absolute"
+                                  Viewport="0,0,400,80" ViewportUnits="Absolute">
+                        <DrawingBrush.Transform>
+                            <TranslateTransform/>
+                        </DrawingBrush.Transform>
+                        <DrawingBrush.Drawing>
+                            <GeometryDrawing Brush="#1A6C63FF"
+                                             Geometry="M0,46 C133,12 267,80 400,46 L400,80 L0,80 Z"/>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TranslateTransform.X)"
+                                                 From="0" To="-400" Duration="0:0:9"
+                                                 RepeatBehavior="Forever"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TranslateTransform.X)"
+                                                 To="-400" Duration="0:0:1.2">
+                                    <DoubleAnimation.EasingFunction>
+                                        <SineEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 앞쪽 겹은 뒤쪽보다 빠르다. 두 겹이 어긋나며 겹치는 자리가 계속 바뀌어 물결이 이는 것처럼 보인다. -->
+        <Style x:Key="FrontWaveStyle" TargetType="Rectangle">
+            <Setter Property="Fill">
+                <Setter.Value>
+                    <DrawingBrush TileMode="Tile" Stretch="Fill"
+                                  Viewbox="0,0,300,80" ViewboxUnits="Absolute"
+                                  Viewport="0,0,300,80" ViewportUnits="Absolute">
+                        <DrawingBrush.Transform>
+                            <TranslateTransform/>
+                        </DrawingBrush.Transform>
+                        <DrawingBrush.Drawing>
+                            <GeometryDrawing Brush="#1AFFFFFF"
+                                             Geometry="M0,40 C100,0 200,80 300,40 L300,80 L0,80 Z"/>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TranslateTransform.X)"
+                                                 From="0" To="-300" Duration="0:0:5"
+                                                 RepeatBehavior="Forever"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TranslateTransform.X)"
+                                                 To="-300" Duration="0:0:1.2">
+                                    <DoubleAnimation.EasingFunction>
+                                        <SineEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Page.Resources>
+
     <Page.Triggers>
         <EventTrigger RoutedEvent="Loaded">
             <BeginStoryboard Storyboard="{StaticResource SlideIn}"/>
@@ -41,22 +143,17 @@
                         <SolidColorBrush Color="#0E0E1A"/>
                     </Grid.Background>
 
-                    <!-- 웨이브 패턴 오버레이 -->
-                    <Path Stretch="Fill" 
-                      Fill="#1AFFFFFF"
-                      VerticalAlignment="Bottom"
-                      Height="80">
-                        <Path.Data>
-                            <PathGeometry>
-                                <PathFigure StartPoint="0,40">
-                                    <BezierSegment Point1="100,0" Point2="200,80" Point3="300,40"/>
-                                    <BezierSegment Point1="400,0" Point2="500,80" Point3="600,40"/>
-                                    <LineSegment Point="600,80"/>
-                                    <LineSegment Point="0,80"/>
-                                </PathFigure>
-                            </PathGeometry>
-                        </Path.Data>
-                    </Path>
+                    <!--
+                    웨이브 패턴 오버레이. 주기가 다른 두 겹을 서로 다른 속도로 흘려보낸다.
+                    모양, 색, 주기, 속도는 모두 위쪽 스타일에 있다. 여기서는 자리와 높이만 정한다.
+                    -->
+                    <Rectangle Height="80"
+                               VerticalAlignment="Bottom"
+                               Style="{StaticResource BackWaveStyle}"/>
+
+                    <Rectangle Height="80"
+                               VerticalAlignment="Bottom"
+                               Style="{StaticResource FrontWaveStyle}"/>
 
                     <StackPanel VerticalAlignment="Center"
                             HorizontalAlignment="Center">

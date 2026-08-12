@@ -171,7 +171,7 @@
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsPlaying}" Value="True">
                                                 <DataTrigger.EnterActions>
-                                                    <BeginStoryboard>
+                                                    <BeginStoryboard x:Name="ResonancePulse">
                                                         <Storyboard>
                                                             <DoubleAnimation Storyboard.TargetProperty="Opacity"
                                                                          From="0.7" To="1" Duration="0:0:1"
@@ -180,6 +180,10 @@
                                                         </Storyboard>
                                                     </BeginStoryboard>
                                                 </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <!-- 멈추지 않으면 재생을 멈춘 뒤에도 숫자가 계속 깜빡인다. -->
+                                                    <StopStoryboard BeginStoryboardName="ResonancePulse"/>
+                                                </DataTrigger.ExitActions>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>

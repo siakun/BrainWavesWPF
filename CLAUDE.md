@@ -1,4 +1,4 @@
-- 이 파일이 담당하는 것: BrainWavesWPF의 구조, 화면과 창 크기 정책, 디자인 시스템과 자동 업데이트가 연결된 자리입니다.
+- 이 파일이 담당하는 것: BrainWavesWPF의 구조, 화면과 창 크기 정책, 디자인 시스템과 자동 업데이트가 연결된 자리, 이 저장소의 브랜치 전략입니다.
 - 위치만 참조하는 것: 빌드와 릴리스 명령은 `.claude/build_and_release.md`에, 색과 글꼴 값은 `BrainWaves/BrainWaves/Resources/Theme/Palette.xaml`에, 재사용할 기술 레퍼런스는 `docs/`에 있습니다.
 - 담지 않는 것: 커밋 규칙과 푸시 정책처럼 모든 저장소에 공통인 규칙, Siakun.AutoUpdate와 Velopack의 내부 동작입니다.
 
@@ -119,6 +119,16 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 ## GitHub 리포지토리
 
 https://github.com/siakun/BrainWavesWPF
+
+## 브랜치 전략: GitHub Flow
+
+이 저장소는 GitHub Flow를 씁니다. main은 항상 배포 가능한 상태로 두고, 모든 작업은 main에서 딴 작업 브랜치에서 합니다.
+
+전역 규칙의 develop 브랜치 운용은 이 저장소에 적용하지 않습니다. 이 절이 우선합니다. "기본 브랜치 직접 커밋 금지"는 그대로 지키되, 커밋할 곳은 develop이 아니라 그 작업의 브랜치입니다.
+
+작업마다 main에서 브랜치를 따고, 끝나면 PR로 main에 합친 뒤 브랜치를 지웁니다. 오래 사는 브랜치를 두지 않습니다.
+
+커밋 메시지 컨벤션, 작성자 표기, 푸시 정책은 전역 규칙을 그대로 따릅니다. push는 사용자가 직접 합니다.
 
 ## Project Tree
 BrainWavesWPF

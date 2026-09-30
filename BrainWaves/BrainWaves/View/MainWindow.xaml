@@ -8,6 +8,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:BrainWaves.ViewModel"
+        xmlns:views="clr-namespace:BrainWaves.View"
         xmlns:behaviors="clr-namespace:BrainWaves.Behaviors"
         mc:Ignorable="d"
         Title="BrainWaves - Binaural Beat Generator"
@@ -59,9 +60,11 @@
                 </DockPanel>
             </materialDesign:ColorZone>
 
-            <!-- メインコンテンツ -->
+            <!-- 디자이너에서는 URI 탐색에 의존하지 않고 페이지 인스턴스를 직접 제공한다. -->
             <Frame Grid.Row="1"
-                   Source="{Binding ShowingPageName}" 
+                   Source="{Binding ShowingPageName}"
+                   d:Source="{x:Null}"
+                   d:Content="{d:DesignInstance Type=views:Waves, IsDesignTimeCreatable=True}"
                    NavigationUIVisibility="Hidden"/>
 
             <!-- Bottom Navigation -->

@@ -1,5 +1,6 @@
-﻿<!--
-하단 네비게이션 바가 있는 프레임 기반 네비게이션 컨테이너
+<!--
+하단 탭과 업데이트 알림 막대가 있는 프레임 기반 네비게이션 컨테이너.
+앱 이름은 Windows 제목 표시줄이 보여 주므로 창 안에 따로 머리 막대를 두지 않고, 그 자리를 각 페이지에 준다.
 -->
 <Window x:Class="BrainWaves.View.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -8,131 +9,150 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:BrainWaves.ViewModel"
+        xmlns:views="clr-namespace:BrainWaves.View"
         xmlns:behaviors="clr-namespace:BrainWaves.Behaviors"
         mc:Ignorable="d"
-        Title="BrainWaves - Binaural Beat Generator"
+        Title="BrainWaves"
         Width="450" MinWidth="450"
         SizeToContent="Height"
         behaviors:WindowAutoFit.IsEnabled="True"
+        behaviors:TitleBar.Background="{StaticResource Color.Background}"
+        behaviors:TitleBar.Foreground="{StaticResource Color.TextMuted}"
         WindowStartupLocation="CenterScreen"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
+        TextElement.Foreground="{StaticResource Brush.Text}"
         TextElement.FontSize="13"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}">
+        Background="{StaticResource Brush.Background}"
+        FontFamily="{StaticResource Font.Body}">
     <Window.DataContext>
         <vm:MainViewModel/>
     </Window.DataContext>
 
-    <materialDesign:DrawerHost IsLeftDrawerOpen="False">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <!-- App Bar -->
-            <materialDesign:ColorZone Grid.Row="0"
-                                      Padding="16"
-                                      materialDesign:ElevationAssist.Elevation="Dp4"
-                                      Mode="PrimaryMid">
-                <DockPanel>
-                    <materialDesign:PopupBox DockPanel.Dock="Right"
-                                             PlacementMode="BottomAndAlignRightEdges">
-                        <StackPanel>
-                            <Button Content="About" />
-                            <Button Content="Help" />
-                            <Separator />
-                            <Button Content="Exit" Click="ExitApp_Click" />
-                        </StackPanel>
-                    </materialDesign:PopupBox>
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Brain" Width="24" Height="24" VerticalAlignment="Center" />
-                        <TextBlock Text="BrainWaves" 
-                                   VerticalAlignment="Center" 
-                                   Margin="16,0,0,0"
-                                   Style="{StaticResource MaterialDesignHeadline6TextBlock}" />
-                    </StackPanel>
-                </DockPanel>
-            </materialDesign:ColorZone>
+        <!-- 디자이너에서는 URI 탐색에 의존하지 않고 페이지 인스턴스를 직접 제공한다. -->
+        <Frame Grid.Row="0"
+               Source="{Binding ShowingPageName}"
+               d:Source="{x:Null}"
+               d:Content="{d:DesignInstance Type=views:Waves, IsDesignTimeCreatable=True}"
+               NavigationUIVisibility="Hidden"
+               Focusable="False"/>
 
-            <!-- メインコンテンツ -->
-            <Frame Grid.Row="1"
-                   Source="{Binding ShowingPageName}" 
-                   NavigationUIVisibility="Hidden"/>
+        <!--
+        받아 둔 업데이트 알림. 설정 화면 밖에서도 보이도록 창에 둔다.
+        닫을 때 저절로 설치되므로 사용자가 무엇을 하지 않아도 되고, 지금 바로 설치하고 싶을 때만 누른다.
+        -->
+        <Border Grid.Row="1"
+                Background="{StaticResource Brush.Surface}"
+                BorderBrush="{StaticResource Brush.Line}"
+                BorderThickness="0,1,0,0"
+                Padding="20,12"
+                Visibility="{Binding Updates.IsUpdateReady, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Bottom Navigation -->
-            <materialDesign:Card Grid.Row="2"
-                                 UniformCornerRadius="0"
-                                 Padding="0"
-                                 materialDesign:ElevationAssist.Elevation="Dp8"
-                                 Background="#1A1A2E">
-                <Grid Height="80">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
+                <materialDesign:PackIcon Grid.Column="0"
+                                         Kind="ArrowUpCircleOutline"
+                                         Width="20" Height="20"
+                                         Margin="0,0,12,0"
+                                         VerticalAlignment="Center"
+                                         Foreground="{StaticResource Brush.Text}"/>
 
-                    <RadioButton x:Name="WavesNav"
-                                 Grid.Column="0"
-                                 Style="{StaticResource MaterialDesignTabRadioButton}"
-                                 Command="{Binding NavigateFrameCommand}"
-                                 CommandParameter="pack://application:,,,/View/Waves.xaml"
-                                 IsChecked="True"
-                                 Height="80">
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="Waveform" 
-                                                     Width="24" 
-                                                     Height="24"
-                                                     HorizontalAlignment="Center"/>
-                            <TextBlock Text="Waves" 
-                                       HorizontalAlignment="Center"
-                                       Margin="0,4,0,0"
-                                       FontSize="12"/>
-                        </StackPanel>
-                    </RadioButton>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource Text.Title}"
+                               Text="{Binding Updates.ReadyVersion, StringFormat='Version {0} is ready'}"/>
+                    <TextBlock Style="{StaticResource Text.Caption}"
+                               Text="It installs when you close BrainWaves."/>
+                </StackPanel>
 
-                    <RadioButton x:Name="PresetsNav"
-                                 Grid.Column="1"
-                                 Style="{StaticResource MaterialDesignTabRadioButton}"
-                                 Command="{Binding NavigateFrameCommand}"
-                                 CommandParameter="pack://application:,,,/View/Presets.xaml"
-                                 Height="80">
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="PlaylistPlay" 
-                                                     Width="24" 
-                                                     Height="24"
-                                                     HorizontalAlignment="Center"/>
-                            <TextBlock Text="Presets" 
-                                       HorizontalAlignment="Center"
-                                       Margin="0,4,0,0"
-                                       FontSize="12"/>
-                        </StackPanel>
-                    </RadioButton>
+                <Button Grid.Column="2"
+                        Style="{StaticResource Button.Secondary}"
+                        Margin="12,0,0,0"
+                        Content="Restart now"
+                        Command="{Binding Updates.RestartNowCommand}"/>
+            </Grid>
+        </Border>
 
-                    <RadioButton x:Name="SettingsNav"
-                                 Grid.Column="2"
-                                 Style="{StaticResource MaterialDesignTabRadioButton}"
-                                 Command="{Binding NavigateFrameCommand}"
-                                 CommandParameter="pack://application:,,,/View/Settings.xaml"
-                                 Height="80">
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="Settings" 
-                                                     Width="24" 
-                                                     Height="24"
-                                                     HorizontalAlignment="Center"/>
-                            <TextBlock Text="Settings" 
-                                       HorizontalAlignment="Center"
-                                       Margin="0,4,0,0"
-                                       FontSize="12"/>
-                        </StackPanel>
-                    </RadioButton>
+        <!-- 설정 화면에서 고른 버전을 받는 중에 다른 화면으로 옮겨도 진행 상황이 보이게 한다. -->
+        <Border Grid.Row="2"
+                Background="{StaticResource Brush.Surface}"
+                BorderBrush="{StaticResource Brush.Line}"
+                BorderThickness="0,1,0,0"
+                Padding="20,12"
+                Visibility="{Binding Updates.IsInstalling, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <Grid>
+                    <TextBlock Style="{StaticResource Text.Title}"
+                               Text="{Binding Updates.InstallingVersion, StringFormat='Downloading version {0}'}"/>
+                    <TextBlock Style="{StaticResource Text.Readout}"
+                               HorizontalAlignment="Right"
+                               FontSize="14"
+                               Text="{Binding Updates.InstallProgress, StringFormat='{}{0}%'}"/>
                 </Grid>
-            </materialDesign:Card>
-        </Grid>
-    </materialDesign:DrawerHost>
+                <ProgressBar Style="{StaticResource ProgressBar.Line}"
+                             Margin="0,10,0,0"
+                             Maximum="100"
+                             Value="{Binding Updates.InstallProgress, Mode=OneWay}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 하단 탭 -->
+        <Border Grid.Row="3"
+                Background="{StaticResource Brush.Surface}"
+                BorderBrush="{StaticResource Brush.Line}"
+                BorderThickness="0,1,0,0">
+            <Grid Height="60">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <RadioButton Grid.Column="0"
+                             Style="{StaticResource NavTab}"
+                             Command="{Binding NavigateFrameCommand}"
+                             CommandParameter="pack://application:,,,/View/Waves.xaml"
+                             AutomationProperties.Name="Waves"
+                             IsChecked="True">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="SineWave" Width="22" Height="22" HorizontalAlignment="Center"/>
+                        <TextBlock Text="WAVES" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </RadioButton>
+
+                <RadioButton Grid.Column="1"
+                             Style="{StaticResource NavTab}"
+                             Command="{Binding NavigateFrameCommand}"
+                             CommandParameter="pack://application:,,,/View/Presets.xaml"
+                             AutomationProperties.Name="Presets">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="PlaylistMusicOutline" Width="22" Height="22" HorizontalAlignment="Center"/>
+                        <TextBlock Text="PRESETS" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </RadioButton>
+
+                <RadioButton Grid.Column="2"
+                             Style="{StaticResource NavTab}"
+                             Command="{Binding NavigateFrameCommand}"
+                             CommandParameter="pack://application:,,,/View/Settings.xaml"
+                             AutomationProperties.Name="Settings">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="CogOutline" Width="22" Height="22" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SETTINGS" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </RadioButton>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>

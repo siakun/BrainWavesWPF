@@ -1,4 +1,5 @@
 ﻿using System;
+using BrainWaves.Model;
 using BrainWaves.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -12,14 +13,12 @@ namespace BrainWaves.ViewModel
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Resonance))]
-        [NotifyPropertyChangedFor(nameof(WaveType))]
-        [NotifyPropertyChangedFor(nameof(WaveDescription))]
+        [NotifyPropertyChangedFor(nameof(Band))]
         private double leftFrequency = 75.0;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Resonance))]
-        [NotifyPropertyChangedFor(nameof(WaveType))]
-        [NotifyPropertyChangedFor(nameof(WaveDescription))]
+        [NotifyPropertyChangedFor(nameof(Band))]
         private double rightFrequency = 73.0;
 
         [ObservableProperty]
@@ -42,39 +41,7 @@ namespace BrainWaves.ViewModel
 
         public double Resonance => Math.Abs(LeftFrequency - RightFrequency);
 
-        public string WaveType
-        {
-            get
-            {
-                double resonance = Resonance;
-                if (resonance >= 42.01) return "Undefined";
-                if (resonance >= 38.01) return "Gamma";
-                if (resonance >= 12.01) return "Beta";
-                if (resonance >= 8.01) return "Alpha";
-                if (resonance >= 3.01) return "Theta";
-                if (resonance >= 0.51) return "Delta";
-                if (resonance >= 0.01) return "Infra-Low";
-                return "Mono";
-            }
-        }
-
-        public string WaveDescription
-        {
-            get
-            {
-                return WaveType switch
-                {
-                    "Gamma" => "High Focus",
-                    "Beta" => "Active Thinking",
-                    "Alpha" => "Relaxation",
-                    "Theta" => "Meditation",
-                    "Delta" => "Sleep",
-                    "Infra-Low" => "Deep Healing",
-                    "Mono" => "No Effect",
-                    _ => "Unknown"
-                };
-            }
-        }
+        public BrainwaveBand Band => BrainwaveBand.FromBeat(Resonance);
 
         public WavesViewModel()
         {
@@ -188,12 +155,6 @@ namespace BrainWaves.ViewModel
             IsPlaying = playing;
             PlayButtonText = playing ? "Stop" : "Play";
             PlayButtonIcon = playing ? "Stop" : "Play";
-        }
-
-        [RelayCommand]
-        private void ShowTimer()
-        {
-            // Timer 기능은 나중에 구현
         }
     }
 }

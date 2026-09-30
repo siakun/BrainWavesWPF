@@ -13,13 +13,18 @@ namespace BrainWaves.ViewModel
 
         public ObservableCollection<PresetData> PresetList { get; set; }
 
+        /// <summary>
+        /// 창 아래쪽 업데이트 알림 막대가 보는 상태
+        /// </summary>
+        public UpdatesViewModel Updates => UpdatesViewModel.Instance;
+
         public MainViewModel()
         {
             showingPageName = new Uri("pack://application:,,,/View/Waves.xaml");
             PresetList = new ObservableCollection<PresetData>();
 
             PresetList.Add(new("Visualization", 101.08, 109.75));
-            PresetList.Add(new("Createive", 110.72, 138.85));
+            PresetList.Add(new("Creative", 110.72, 138.85));
             PresetList.Add(new("Focus", 133.00, 162.00));
             PresetList.Add(new("Work", 194.66, 181.33));
             PresetList.Add(new("Concentrate", 158.44, 144.98));

@@ -1,0 +1,96 @@
+<!--
+한 채널(왼쪽 또는 오른쪽)의 주파수와 음량을 조절하는 카드.
+좌우 카드는 채널 이름과 색, 바인딩할 값만 다르므로 모양은 여기 한 곳에 두고 Waves 페이지가 두 번 놓는다.
+-->
+<UserControl x:Class="BrainWaves.View.ChannelCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="200"
+             x:Name="Root">
+    <Border Style="{StaticResource Card}" Padding="16,14,16,10">
+        <StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Ellipse Width="7" Height="7" Margin="0,0,7,0"
+                         VerticalAlignment="Center"
+                         Fill="{Binding ChannelBrush, ElementName=Root}"/>
+                <TextBlock Style="{StaticResource Text.Label}" Text="{Binding Title, ElementName=Root}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="-1,6,0,4">
+                <TextBlock Style="{StaticResource Text.Readout}"
+                           FontSize="32"
+                           Text="{Binding Frequency, ElementName=Root, StringFormat='{}{0:F2}'}"/>
+                <TextBlock Style="{StaticResource Text.Unit}"
+                           FontSize="14"
+                           VerticalAlignment="Bottom"
+                           Margin="5,0,0,6"
+                           Text="Hz"/>
+            </StackPanel>
+
+            <!-- 슬라이더는 10 Hz 단위로 크게 옮기고, 양쪽 버튼은 0.01 Hz씩 다듬는다. 버튼은 누르고 있으면 계속 옮긴다. -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <RepeatButton Grid.Column="0"
+                              Style="{StaticResource Button.Round}"
+                              Command="{Binding DecreaseCommand, ElementName=Root}"
+                              Delay="400" Interval="40"
+                              ToolTip="Lower by 0.01 Hz. Hold to keep lowering."
+                              AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='Lower {0} frequency'}">
+                    <materialDesign:PackIcon Kind="Minus" Width="16" Height="16"/>
+                </RepeatButton>
+                <Slider Grid.Column="1"
+                        Margin="6,0"
+                        Minimum="20" Maximum="500"
+                        TickFrequency="10" IsSnapToTickEnabled="True"
+                        Foreground="{Binding ChannelBrush, ElementName=Root}"
+                        Value="{Binding Frequency, ElementName=Root, Mode=TwoWay}"
+                        AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='{}{0} frequency'}"/>
+                <RepeatButton Grid.Column="2"
+                              Style="{StaticResource Button.Round}"
+                              Command="{Binding IncreaseCommand, ElementName=Root}"
+                              Delay="400" Interval="40"
+                              ToolTip="Raise by 0.01 Hz. Hold to keep raising."
+                              AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='Raise {0} frequency'}">
+                    <materialDesign:PackIcon Kind="Plus" Width="16" Height="16"/>
+                </RepeatButton>
+            </Grid>
+
+            <Grid Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <materialDesign:PackIcon Grid.Column="0"
+                                         Kind="VolumeMedium"
+                                         Width="16" Height="16"
+                                         Margin="0,0,8,0"
+                                         VerticalAlignment="Center"
+                                         Foreground="{StaticResource Brush.TextFaint}"/>
+                <Slider Grid.Column="1"
+                        Maximum="100"
+                        Foreground="{StaticResource Brush.TextMuted}"
+                        Value="{Binding Gain, ElementName=Root, Mode=TwoWay}"
+                        AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='{}{0} volume'}"/>
+                <TextBlock Grid.Column="2"
+                           Style="{StaticResource Text.Readout}"
+                           FontSize="13"
+                           FontWeight="Normal"
+                           MinWidth="26"
+                           Margin="8,0,0,0"
+                           TextAlignment="Right"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource Brush.TextMuted}"
+                           Text="{Binding Gain, ElementName=Root, StringFormat='{}{0:F0}'}"/>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

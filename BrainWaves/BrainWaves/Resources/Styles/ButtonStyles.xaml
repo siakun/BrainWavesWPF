@@ -1,51 +1,263 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+<!--
+누르는 컨트롤의 스타일. 버튼, 하단 탭, 켜고 끄는 스위치가 모두 ButtonBase 계열이라 이 파일에 둔다.
+
+Material Design 템플릿을 쓰지 않고 직접 그린다. 물결 효과와 그림자가 이 앱의 차분한 화면과 맞지 않고,
+눌렀을 때 반응은 면의 밝기 변화만으로 충분하다.
+키보드 포커스는 FocusVisualStyle로 그린다. 마우스로 누를 때는 테두리가 생기지 않고 Tab으로 옮겨 올 때만 보인다.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Settings 페이지용 리스트 아이템 버튼 스타일 -->
-    <Style x:Key="SettingsListItemButton" TargetType="Button">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="16"/>
-        <Setter Property="HorizontalAlignment" Value="Stretch"/>
-        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-        <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="materialDesign:RippleAssist.IsDisabled" Value="False"/>
-        <Setter Property="materialDesign:RippleAssist.Feedback" Value="#6C63FF"/>
-        <Setter Property="Template">
+    <Style x:Key="FocusVisual">
+        <Setter Property="Control.Template">
             <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <!-- 
-                    중요: materialDesign:Ripple 사용 이유
-                    1. ContentControl 기반으로 콘텐츠 크기를 올바르게 측정
-                    2. TemplateBinding으로 Button의 모든 레이아웃 속성 상속
-                    3. Material Design의 클릭 시 물결 효과 자동 포함
-                    4. WPF 레이아웃 체인에서 크기 정보가 손실되지 않음
-                    -->
-                    <materialDesign:Ripple Content="{TemplateBinding Content}"
-                                           ContentTemplate="{TemplateBinding ContentTemplate}"
-                                           Padding="{TemplateBinding Padding}"
-                                           HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                           VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                <ControlTemplate>
+                    <Rectangle Margin="-3" RadiusX="12" RadiusY="12"
+                               Stroke="{StaticResource Brush.Text}" StrokeThickness="1.5"
+                               SnapsToDevicePixels="True"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
-    <!-- 원형 버튼 스타일 -->
-    <Style x:Key="CircularButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignFloatingActionMiniDarkButton}">
-        <Setter Property="Width" Value="56"/>
-        <Setter Property="Height" Value="56"/>
-        <Setter Property="Margin" Value="8"/>
-        <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp6"/>
+    <!-- 반지름이 크기의 절반을 넘으면 WPF가 절반으로 줄이므로, 알약 모양과 원 모양 컨트롤에 함께 쓴다. -->
+    <Style x:Key="FocusVisual.Pill">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="-3" RadiusX="999" RadiusY="999"
+                               Stroke="{StaticResource Brush.Text}" StrokeThickness="1.5"
+                               SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
-    <!-- 재생 버튼 스타일 -->
-    <Style x:Key="PlayButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedDarkButton}">
-        <Setter Property="Height" Value="48"/>
-        <Setter Property="Padding" Value="32,0"/>
-        <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="24"/>
-        <Setter Property="FontSize" Value="16"/>
-        <Setter Property="FontWeight" Value="Medium"/>
+    <!--
+    재생처럼 화면의 중심이 되는 주 동작. 채널 색과 겹치지 않도록 가장 밝은 글자 색으로 채운다.
+    밤에 켜 두는 앱이라 밝은 면적을 줄이려고 너비를 다 채우는 막대 대신 원으로 그린다.
+    -->
+    <Style x:Key="Button.PrimaryRound" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Background}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Width" Value="64"/>
+        <Setter Property="Height" Value="64"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="32">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.9"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.78"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.35"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 테두리만 있는 보조 동작. 확인, 설치, 취소처럼 한 화면에 여럿 놓이는 동작에 쓴다. -->
+    <Style x:Key="Button.Secondary" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.Body}"/>
+        <Setter Property="FontSize" Value="12.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="Padding" Value="14,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="17">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource Brush.SurfaceRaised}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource Brush.Line}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 주파수를 0.01 Hz씩 옮기는 작은 원형 버튼. 누르고 있으면 계속 옮기도록 RepeatButton에도 쓴다. -->
+    <Style x:Key="Button.Round" TargetType="ButtonBase">
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ButtonBase">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="16">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource Brush.SurfaceRaised}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource Brush.Line}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+    카드 안의 한 줄 전체가 눌리는 목록 항목. 카드의 둥근 모서리 밖으로 강조가 삐져나오지 않도록
+    강조 면을 카드 안쪽으로 들여 둥글게 그린다. 들여 쓰는 폭은 항목을 놓는 쪽의 Margin으로 정한다.
+    -->
+    <Style x:Key="Button.Row" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="10">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource Brush.SurfaceRaised}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource Brush.Line}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 하단 탭. 고른 탭만 글자가 밝아지고 위쪽에 짧은 막대가 선다. -->
+    <Style x:Key="NavTab" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextFaint}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.Display}"/>
+        <Setter Property="FontStretch" Value="SemiCondensed"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="{TemplateBinding Background}">
+                        <Border x:Name="Indicator"
+                                Width="28" Height="2"
+                                CornerRadius="1"
+                                VerticalAlignment="Top"
+                                Background="{StaticResource Brush.Text}"
+                                Opacity="0"/>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+                            <Setter TargetName="Indicator" Property="Opacity" Value="1"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 켜고 끄는 스위치. 켜면 바탕을 글자 색으로 채우고 손잡이를 오른쪽으로 옮긴다. -->
+    <Style x:Key="Toggle.Switch" TargetType="ToggleButton">
+        <Setter Property="Width" Value="40"/>
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid Background="Transparent">
+                        <Border x:Name="Track"
+                                CornerRadius="11"
+                                Background="Transparent"
+                                BorderBrush="{StaticResource Brush.TextFaint}"
+                                BorderThickness="1.5"/>
+                        <Ellipse x:Name="Knob"
+                                 Width="12" Height="12"
+                                 Margin="5,0"
+                                 HorizontalAlignment="Left"
+                                 Fill="{StaticResource Brush.TextMuted}"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{StaticResource Brush.TextMuted}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{StaticResource Brush.Text}"/>
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{StaticResource Brush.Text}"/>
+                            <Setter TargetName="Knob" Property="Fill" Value="{StaticResource Brush.Background}"/>
+                            <Setter TargetName="Knob" Property="Width" Value="14"/>
+                            <Setter TargetName="Knob" Property="Height" Value="14"/>
+                            <Setter TargetName="Knob" Property="Margin" Value="4,0"/>
+                            <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

@@ -1,4 +1,3 @@
-﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace BrainWaves.View
@@ -8,11 +7,6 @@ namespace BrainWaves.View
         public Presets()
         {
             InitializeComponent();
-        }
-
-        private void StopPropagation(object sender, RoutedEventArgs e)
-        {
-            e.Handled = true;
         }
     }
 }

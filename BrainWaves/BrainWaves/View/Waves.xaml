@@ -1,5 +1,7 @@
-﻿<!--
-수동 주파수 제어 페이지
+<!--
+수동 주파수 제어 페이지.
+위에서부터 지금 들리는 비트와 그 대역, 전체 음량, 좌우 채널을 놓는다. 좌우 채널 카드를 나란히 두어
+어느 귀에 어떤 소리가 가는지 화면 배치 그대로 읽히게 한다.
 -->
 <Page x:Class="BrainWaves.View.Waves"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -8,8 +10,9 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:vm="clr-namespace:BrainWaves.ViewModel"
-      mc:Ignorable="d" 
-      d:DesignHeight="650" d:DesignWidth="400" 
+      xmlns:views="clr-namespace:BrainWaves.View"
+      mc:Ignorable="d"
+      d:DesignHeight="650" d:DesignWidth="450"
       Title="Waves">
     <Page.DataContext>
         <vm:WavesViewModel/>
@@ -24,12 +27,16 @@
         멈출 때는 남은 주기를 마저 밀어 세운다. 그래야 멈추는 순간 파형이 제자리로 튀지 않고,
         다시 재생할 때도 이어서 흐르는 것처럼 보인다.
         브러시는 Rectangle이 아니라 Style의 Setter에 둔다. 재생 중에 이 페이지가 새로 만들어지면
-        Style을 붙이는 순간 DataTrigger가 곧바로 발동하는데, 요소에 직접 적은 Fill은 Style 특성보다
+        Style을 붙이는 순간 트리거가 곧바로 발동하는데, 요소에 직접 적은 Fill은 Style 특성보다
         나중에 설정되므로 그 시점에는 아직 없다. 애니메이션이 브러시를 찾지 못해 예외가 난다.
         Setter로 심은 값은 트리거가 도는 시점에 이미 자리를 잡고 있고, 요소마다 별개의 인스턴스로
         만들어지므로 스타일을 나눠 써도 서로 간섭하지 않는다.
+
+        두 겹은 좌우 채널이다. 뒤쪽 겹은 왼쪽, 앞쪽 겹은 오른쪽 채널 색으로 그린다.
+        면과 선을 따로 그리는 것은 닫힌 면에 선을 그으면 타일 양 끝의 세로 변까지 그어져 이음매마다 줄이 서기 때문이다.
+        Windows에서 애니메이션 표시를 끈 사용자에게는 파형을 흘리지 않는다.
         -->
-        <Style x:Key="BackWaveStyle" TargetType="Rectangle">
+        <Style x:Key="LeftWaveStyle" TargetType="Rectangle">
             <Setter Property="Fill">
                 <Setter.Value>
                     <DrawingBrush TileMode="Tile" Stretch="Fill"
@@ -39,15 +46,33 @@
                             <TranslateTransform/>
                         </DrawingBrush.Transform>
                         <DrawingBrush.Drawing>
-                            <GeometryDrawing Brush="#1A6C63FF"
-                                             Geometry="M0,46 C133,12 267,80 400,46 L400,80 L0,80 Z"/>
+                            <DrawingGroup>
+                                <GeometryDrawing Geometry="M0,46 C133,12 267,80 400,46 L400,80 L0,80 Z">
+                                    <GeometryDrawing.Brush>
+                                        <SolidColorBrush Color="{StaticResource Color.ChannelLeft}" Opacity="0.07"/>
+                                    </GeometryDrawing.Brush>
+                                </GeometryDrawing>
+                                <GeometryDrawing Geometry="M0,46 C133,12 267,80 400,46">
+                                    <GeometryDrawing.Pen>
+                                        <Pen Thickness="1.5">
+                                            <Pen.Brush>
+                                                <SolidColorBrush Color="{StaticResource Color.ChannelLeft}" Opacity="0.75"/>
+                                            </Pen.Brush>
+                                        </Pen>
+                                    </GeometryDrawing.Pen>
+                                </GeometryDrawing>
+                            </DrawingGroup>
                         </DrawingBrush.Drawing>
                     </DrawingBrush>
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                    <DataTrigger.EnterActions>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsPlaying}" Value="True"/>
+                        <Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.EnterActions>
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TranslateTransform.X)"
@@ -55,8 +80,8 @@
                                                  RepeatBehavior="Forever"/>
                             </Storyboard>
                         </BeginStoryboard>
-                    </DataTrigger.EnterActions>
-                    <DataTrigger.ExitActions>
+                    </MultiDataTrigger.EnterActions>
+                    <MultiDataTrigger.ExitActions>
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TranslateTransform.X)"
@@ -67,13 +92,13 @@
                                 </DoubleAnimation>
                             </Storyboard>
                         </BeginStoryboard>
-                    </DataTrigger.ExitActions>
-                </DataTrigger>
+                    </MultiDataTrigger.ExitActions>
+                </MultiDataTrigger>
             </Style.Triggers>
         </Style>
 
         <!-- 앞쪽 겹은 뒤쪽보다 빠르다. 두 겹이 어긋나며 겹치는 자리가 계속 바뀌어 물결이 이는 것처럼 보인다. -->
-        <Style x:Key="FrontWaveStyle" TargetType="Rectangle">
+        <Style x:Key="RightWaveStyle" TargetType="Rectangle">
             <Setter Property="Fill">
                 <Setter.Value>
                     <DrawingBrush TileMode="Tile" Stretch="Fill"
@@ -83,15 +108,33 @@
                             <TranslateTransform/>
                         </DrawingBrush.Transform>
                         <DrawingBrush.Drawing>
-                            <GeometryDrawing Brush="#1AFFFFFF"
-                                             Geometry="M0,40 C100,0 200,80 300,40 L300,80 L0,80 Z"/>
+                            <DrawingGroup>
+                                <GeometryDrawing Geometry="M0,40 C100,0 200,80 300,40 L300,80 L0,80 Z">
+                                    <GeometryDrawing.Brush>
+                                        <SolidColorBrush Color="{StaticResource Color.ChannelRight}" Opacity="0.06"/>
+                                    </GeometryDrawing.Brush>
+                                </GeometryDrawing>
+                                <GeometryDrawing Geometry="M0,40 C100,0 200,80 300,40">
+                                    <GeometryDrawing.Pen>
+                                        <Pen Thickness="1.5">
+                                            <Pen.Brush>
+                                                <SolidColorBrush Color="{StaticResource Color.ChannelRight}" Opacity="0.75"/>
+                                            </Pen.Brush>
+                                        </Pen>
+                                    </GeometryDrawing.Pen>
+                                </GeometryDrawing>
+                            </DrawingGroup>
                         </DrawingBrush.Drawing>
                     </DrawingBrush>
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                    <DataTrigger.EnterActions>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsPlaying}" Value="True"/>
+                        <Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.EnterActions>
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TranslateTransform.X)"
@@ -99,8 +142,8 @@
                                                  RepeatBehavior="Forever"/>
                             </Storyboard>
                         </BeginStoryboard>
-                    </DataTrigger.EnterActions>
-                    <DataTrigger.ExitActions>
+                    </MultiDataTrigger.EnterActions>
+                    <MultiDataTrigger.ExitActions>
                         <BeginStoryboard>
                             <Storyboard>
                                 <DoubleAnimation Storyboard.TargetProperty="(Shape.Fill).(Brush.Transform).(TranslateTransform.X)"
@@ -111,7 +154,18 @@
                                 </DoubleAnimation>
                             </Storyboard>
                         </BeginStoryboard>
-                    </DataTrigger.ExitActions>
+                    </MultiDataTrigger.ExitActions>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 재생 버튼은 멈춰 있을 때 주 동작으로 채우고, 재생 중에는 테두리만 남겨 지금 상태가 버튼에서도 드러나게 한다. -->
+        <Style x:Key="PlayToggleButton" TargetType="Button" BasedOn="{StaticResource Button.PrimaryRound}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Brush.Surface}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource Brush.TextMuted}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -127,536 +181,160 @@
         <TranslateTransform/>
     </Page.RenderTransform>
 
-    <Grid Background="#0E0E1A">
+    <Grid Background="{StaticResource Brush.Background}">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- 헤더 섹션 -->
-                <Grid Grid.Row="0" Height="140">
-                    <Grid.Background>
-                        <SolidColorBrush Color="#0E0E1A"/>
-                    </Grid.Background>
-
+                <!--
+                지금 들리는 비트와 재생 버튼. 위에서부터 무엇의 값인지, 값, 그 값이 속한 대역 순으로 읽히고,
+                재생 버튼을 그 값 옆에 두어 무엇을 틀고 멈추는지 한눈에 묶어 보이게 한다.
+                -->
+                <Grid Grid.Row="0" Height="200" ClipToBounds="True">
                     <!--
                     웨이브 패턴 오버레이. 주기가 다른 두 겹을 서로 다른 속도로 흘려보낸다.
                     모양, 색, 주기, 속도는 모두 위쪽 스타일에 있다. 여기서는 자리와 높이만 정한다.
+                    파형 아래 면이 헤더 끝에서 잘린 듯 끊겨 보이지 않도록 아래로 갈수록 흐리게 가린다.
                     -->
-                    <Rectangle Height="80"
-                               VerticalAlignment="Bottom"
-                               Style="{StaticResource BackWaveStyle}"/>
+                    <Grid Height="80" VerticalAlignment="Bottom">
+                        <Grid.OpacityMask>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="Black" Offset="0.5"/>
+                                <GradientStop Color="Transparent" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Grid.OpacityMask>
 
-                    <Rectangle Height="80"
-                               VerticalAlignment="Bottom"
-                               Style="{StaticResource FrontWaveStyle}"/>
+                        <Rectangle Style="{StaticResource LeftWaveStyle}"/>
+                        <Rectangle Style="{StaticResource RightWaveStyle}"/>
+                    </Grid>
 
-                    <StackPanel VerticalAlignment="Center"
-                            HorizontalAlignment="Center">
-                        <!-- 메인 주파수 표시 -->
-                        <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                Margin="0,10,0,0">
-                            <TextBlock Text="{Binding Resonance, StringFormat='{}{0:F2}'}"
-                                   Foreground="White"
-                                   FontWeight="Light"
-                                   FontSize="56"
-                                   VerticalAlignment="Bottom">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
+                    <Grid Margin="32,20,32,0" VerticalAlignment="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Style="{StaticResource Text.Label}" Text="BINAURAL BEAT"/>
+
+                            <StackPanel Orientation="Horizontal" Margin="-3,2,0,0">
+                                <TextBlock Style="{StaticResource Text.Readout}"
+                                           FontSize="68"
+                                           Text="{Binding Resonance, StringFormat='{}{0:F2}'}"/>
+                                <TextBlock Style="{StaticResource Text.Unit}"
+                                           FontSize="24"
+                                           VerticalAlignment="Bottom"
+                                           Margin="8,0,0,14"
+                                           Text="Hz"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,-2,0,0">
+                                <TextBlock Style="{StaticResource Text.Readout}"
+                                           FontSize="18"
+                                           FontWeight="Normal"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding Band.Symbol}"/>
+                                <TextBlock Style="{StaticResource Text.Title}"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding Band.Name}"/>
+                                <TextBlock Style="{StaticResource Text.Caption}"
+                                           FontSize="13"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding Band.Description}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button Grid.Column="1"
+                                Style="{StaticResource PlayToggleButton}"
+                                VerticalAlignment="Center"
+                                Margin="16,8,0,0"
+                                Command="{Binding TogglePlayCommand}"
+                                ToolTip="{Binding PlayButtonText}"
+                                AutomationProperties.Name="{Binding PlayButtonText}">
+                            <materialDesign:PackIcon Kind="{Binding PlayButtonIcon}" Width="28" Height="28">
+                                <materialDesign:PackIcon.Style>
+                                    <Style TargetType="materialDesign:PackIcon">
+                                        <!-- 재생 삼각형은 무게중심이 왼쪽에 있어 정가운데에 두면 왼쪽으로 쏠려 보인다. -->
+                                        <Setter Property="Margin" Value="3,0,0,0"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                                                <DataTrigger.EnterActions>
-                                                    <BeginStoryboard x:Name="ResonancePulse">
-                                                        <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                                         From="0.7" To="1" Duration="0:0:1"
-                                                                         RepeatBehavior="Forever"
-                                                                         AutoReverse="True"/>
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </DataTrigger.EnterActions>
-                                                <DataTrigger.ExitActions>
-                                                    <!-- 멈추지 않으면 재생을 멈춘 뒤에도 숫자가 계속 깜빡인다. -->
-                                                    <StopStoryboard BeginStoryboardName="ResonancePulse"/>
-                                                </DataTrigger.ExitActions>
+                                                <Setter Property="Margin" Value="0"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <TextBlock Text="Hz" 
-                                   FontSize="36"
-                                   Foreground="White"
-                                   FontWeight="Light"
-                                   VerticalAlignment="Bottom"
-                                   Margin="8,0,0,12"/>
-                        </StackPanel>
+                                </materialDesign:PackIcon.Style>
+                            </materialDesign:PackIcon>
+                        </Button>
+                    </Grid>
+                </Grid>
 
-                        <!-- 웨이브 타입 및 설명 -->
-                        <Grid HorizontalAlignment="Center"
-                          Margin="0,16,0,0">
+                <StackPanel Grid.Row="1" Margin="16,4,16,20">
+                    <!-- 전체 음량 -->
+                    <Border Style="{StaticResource Card}" Padding="16,14,16,8">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0"
-                                Background="#6C63FF"
-                                CornerRadius="20"
-                                Padding="16,8">
-                                <TextBlock Text="{Binding WaveType}"
-                                       Foreground="White"
-                                       FontWeight="Medium"
-                                       FontSize="12"/>
-                            </Border>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                       Style="{StaticResource Text.Label}"
+                                       Text="MASTER VOLUME"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1"
+                                       Style="{StaticResource Text.Readout}"
+                                       HorizontalAlignment="Right"
+                                       FontSize="14"
+                                       FontWeight="Normal"
+                                       Text="{Binding MasterVolume, StringFormat='{}{0:F0}%'}"/>
 
-                            <materialDesign:PackIcon Grid.Column="1"
-                                                 Kind="CircleSmall"
-                                                 Width="8"
-                                                 Height="8"
-                                                 Foreground="White"
-                                                 VerticalAlignment="Center"
-                                                 Opacity="0.5"/>
-
-                            <Border Grid.Column="2"
-                                Background="#6C63FF"
-                                CornerRadius="20"
-                                Padding="16,8">
-                                <TextBlock Text="{Binding WaveDescription}"
-                                       Foreground="White"
-                                       FontWeight="Medium"
-                                       FontSize="12"/>
-                            </Border>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
-
-                <!-- 웨이브 컨트롤 섹션 -->
-                <StackPanel Grid.Row="1" Margin="12,8">
-                    <!-- Master Volume 컨트롤 -->
-                    <Border Margin="8,0,8,8"
-                        CornerRadius="20"
-                        Background="#1A1A2E">
-                        <Grid Margin="12">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <Grid Grid.Row="0" Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <materialDesign:PackIcon Grid.Column="0"
-                                                     Kind="Speaker"
-                                                     Width="20"
-                                                     Height="20"
-                                                     Foreground="#6C63FF"
-                                                     Opacity="0.8"
+                            <materialDesign:PackIcon Grid.Row="1" Grid.Column="0"
+                                                     Kind="VolumeHigh"
+                                                     Width="18" Height="18"
+                                                     Margin="0,0,12,0"
                                                      VerticalAlignment="Center"
-                                                     Margin="0,0,6,0"/>
-
-                                <TextBlock Grid.Column="1"
-                                       Text="MASTER VOLUME" 
-                                       Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
-                                       FontWeight="Medium"
-                                       Foreground="#E0E0E0"
-                                       VerticalAlignment="Center"/>
-                            </Grid>
-
-                            <Grid Grid.Row="1">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <materialDesign:PackIcon Grid.Column="0" 
-                                                     Kind="VolumeHigh" 
-                                                     VerticalAlignment="Center"
-                                                     Foreground="#E0E0E0"
-                                                     Opacity="0.8"
-                                                     Margin="0,0,16,0"/>
-
-                                <Slider Grid.Column="1" 
-                                    Value="{Binding MasterVolume, Mode=TwoWay}" 
+                                                     Foreground="{StaticResource Brush.TextMuted}"/>
+                            <Slider Grid.Row="1" Grid.Column="1"
                                     Maximum="100"
-                                    VerticalAlignment="Center"
-                                    Foreground="#6C63FF"/>
-
-                                <TextBlock Grid.Column="2" 
-                                       Text="{Binding MasterVolume, StringFormat='{}{0:F0}%'}" 
-                                       Style="{StaticResource MaterialDesignBody2TextBlock}"
-                                       VerticalAlignment="Center"
-                                       MinWidth="40"
-                                       TextAlignment="Right"
-                                       Foreground="#E0E0E0"
-                                       Margin="16,0,0,0"/>
-                            </Grid>
+                                    Value="{Binding MasterVolume, Mode=TwoWay}"
+                                    AutomationProperties.Name="Master volume"/>
                         </Grid>
                     </Border>
 
-                    <!-- Left Wave 컨트롤 -->
-                    <Border Margin="8,0,8,8"
-                        CornerRadius="20"
-                        Background="#1A1A2E">
-                        <Grid Margin="12">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                    <!-- 좌우 채널 -->
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                            <Grid Grid.Row="0" Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                        <views:ChannelCard Grid.Column="0"
+                                           Title="LEFT"
+                                           ChannelBrush="{StaticResource Brush.ChannelLeft}"
+                                           Frequency="{Binding LeftFrequency}"
+                                           Gain="{Binding LeftGain}"
+                                           DecreaseCommand="{Binding DecreaseLeftFrequencyCommand}"
+                                           IncreaseCommand="{Binding IncreaseLeftFrequencyCommand}"/>
 
-                                <materialDesign:PackIcon Grid.Column="0"
-                                                     Kind="HeadphonesSettings"
-                                                     Width="20"
-                                                     Height="20"
-                                                     Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                                     Opacity="0.6"
-                                                     VerticalAlignment="Center"
-                                                     Margin="0,0,6,0"/>
-
-                                <TextBlock Grid.Column="1"
-                                       Text="LEFT CHANNEL" 
-                                       Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
-                                       FontWeight="Medium"
-                                       Foreground="#E0E0E0"
-                                       VerticalAlignment="Center"/>
-                            </Grid>
-
-                            <Grid Grid.Row="1" Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Button Grid.Column="0" 
-                                    Command="{Binding DecreaseLeftFrequencyCommand}"
-                                    ToolTip="Decrease frequency"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="8"
-                                    Background="Transparent"
-                                    BorderBrush="#6C63FF"
-                                    BorderThickness="2"
-                                    materialDesign:ButtonAssist.CornerRadius="18">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="18">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                    <materialDesign:PackIcon Kind="Minus" Width="20" Height="20" Foreground="White"/>
-                                </Button>
-
-                                <Border Grid.Column="1" 
-                                    CornerRadius="12"
-                                    Padding="24,12"
-                                    Margin="8"
-                                    Background="#6C63FF">
-                                    <StackPanel VerticalAlignment="Center"
-                                            HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding LeftFrequency, StringFormat='{}{0:F2}'}" 
-                                               Style="{StaticResource MaterialDesignHeadline4TextBlock}"
-                                               HorizontalAlignment="Center"
-                                               Foreground="White"
-                                               FontWeight="Medium"/>
-                                        <TextBlock Text="Hz" 
-                                               Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                                               HorizontalAlignment="Center"
-                                               Foreground="White"
-                                               Opacity="0.8"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <Button Grid.Column="2" 
-                                    Command="{Binding IncreaseLeftFrequencyCommand}"
-                                    ToolTip="Increase frequency"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="8"
-                                    Background="Transparent"
-                                    BorderBrush="#6C63FF"
-                                    BorderThickness="2"
-                                    materialDesign:ButtonAssist.CornerRadius="18">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="18">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                    <materialDesign:PackIcon Kind="Plus" Width="20" Height="20" Foreground="White"/>
-                                </Button>
-                            </Grid>
-
-                            <Slider Grid.Row="2"
-                                Value="{Binding LeftFrequency, Mode=TwoWay}" 
-                                Minimum="20"
-                                Maximum="500"
-                                TickFrequency="10"
-                                IsSnapToTickEnabled="True"
-                                TickPlacement="None"
-                                Margin="0,0,0,8"
-                                Foreground="#6C63FF"
-                                materialDesign:SliderAssist.OnlyShowFocusVisualWhileDragging="True"/>
-
-                            <Grid Grid.Row="3">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <materialDesign:PackIcon Grid.Column="0" 
-                                                     Kind="VolumeHigh" 
-                                                     VerticalAlignment="Center"
-                                                     Foreground="#E0E0E0"
-                                                     Opacity="0.8"
-                                                     Margin="0,0,16,0"/>
-
-                                <Slider Grid.Column="1" 
-                                    Value="{Binding LeftGain, Mode=TwoWay}" 
-                                    Maximum="100"
-                                    VerticalAlignment="Center"
-                                    Foreground="#6C63FF"/>
-
-                                <TextBlock Grid.Column="2" 
-                                       Text="{Binding LeftGain, StringFormat='{}{0:F0}%'}" 
-                                       Style="{StaticResource MaterialDesignBody2TextBlock}"
-                                       VerticalAlignment="Center"
-                                       MinWidth="40"
-                                       TextAlignment="Right"
-                                       Foreground="#E0E0E0"
-                                       Margin="16,0,0,0"/>
-                            </Grid>
-                        </Grid>
-                    </Border>
-
-                    <!-- Right Wave 컨트롤 -->
-                    <Border Margin="8,0,8,8"
-                        CornerRadius="20"
-                        Background="#1A1A2E">
-                        <Grid Margin="12">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <Grid Grid.Row="0" Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <materialDesign:PackIcon Grid.Column="0"
-                                                     Kind="HeadphonesSettings"
-                                                     Width="20"
-                                                     Height="20"
-                                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                                     Opacity="0.6"
-                                                     VerticalAlignment="Center"
-                                                     Margin="0,0,6,0"/>
-
-                                <TextBlock Grid.Column="1"
-                                       Text="RIGHT CHANNEL" 
-                                       Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
-                                       FontWeight="Medium"
-                                       Foreground="#E0E0E0"
-                                       VerticalAlignment="Center"/>
-                            </Grid>
-
-                            <Grid Grid.Row="1" Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Button Grid.Column="0" 
-                                    Command="{Binding DecreaseRightFrequencyCommand}"
-                                    ToolTip="Decrease frequency"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="8"
-                                    Background="Transparent"
-                                    BorderBrush="#6C63FF"
-                                    BorderThickness="2"
-                                    materialDesign:ButtonAssist.CornerRadius="18">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="18">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                    <materialDesign:PackIcon Kind="Minus" Width="20" Height="20" Foreground="White"/>
-                                </Button>
-
-                                <Border Grid.Column="1" 
-                                    CornerRadius="12"
-                                    Padding="24,12"
-                                    Margin="8"
-                                    Background="#6C63FF">
-                                    <StackPanel VerticalAlignment="Center"
-                                            HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding RightFrequency, StringFormat='{}{0:F2}'}" 
-                                               Style="{StaticResource MaterialDesignHeadline4TextBlock}"
-                                               HorizontalAlignment="Center"
-                                               Foreground="White"
-                                               FontWeight="Medium"/>
-                                        <TextBlock Text="Hz" 
-                                               Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                                               HorizontalAlignment="Center"
-                                               Foreground="White"
-                                               Opacity="0.8"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <Button Grid.Column="2" 
-                                    Command="{Binding IncreaseRightFrequencyCommand}"
-                                    ToolTip="Increase frequency"
-                                    Width="32"
-                                    Height="32"
-                                    Margin="8"
-                                    Background="Transparent"
-                                    BorderBrush="#6C63FF"
-                                    BorderThickness="2"
-                                    materialDesign:ButtonAssist.CornerRadius="18">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="18">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                    <materialDesign:PackIcon Kind="Plus" Width="20" Height="20" Foreground="White"/>
-                                </Button>
-                            </Grid>
-
-                            <Slider Grid.Row="2"
-                                Value="{Binding RightFrequency, Mode=TwoWay}" 
-                                Minimum="20"
-                                Maximum="500"
-                                TickFrequency="10"
-                                IsSnapToTickEnabled="True"
-                                TickPlacement="None"
-                                Margin="0,0,0,8"
-                                Foreground="#6C63FF"
-                                materialDesign:SliderAssist.OnlyShowFocusVisualWhileDragging="True"/>
-
-                            <Grid Grid.Row="3">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <materialDesign:PackIcon Grid.Column="0" 
-                                                     Kind="VolumeHigh" 
-                                                     VerticalAlignment="Center"
-                                                     Foreground="#E0E0E0"
-                                                     Opacity="0.8"
-                                                     Margin="0,0,16,0"/>
-
-                                <Slider Grid.Column="1" 
-                                    Value="{Binding RightGain, Mode=TwoWay}" 
-                                    Maximum="100"
-                                    VerticalAlignment="Center"
-                                    Foreground="#6C63FF"/>
-
-                                <TextBlock Grid.Column="2" 
-                                       Text="{Binding RightGain, StringFormat='{}{0:F0}%'}" 
-                                       Style="{StaticResource MaterialDesignBody2TextBlock}"
-                                       VerticalAlignment="Center"
-                                       MinWidth="40"
-                                       TextAlignment="Right"
-                                       Foreground="#E0E0E0"
-                                       Margin="16,0,0,0"/>
-                            </Grid>
-                        </Grid>
-                    </Border>
+                        <views:ChannelCard Grid.Column="2"
+                                           Title="RIGHT"
+                                           ChannelBrush="{StaticResource Brush.ChannelRight}"
+                                           Frequency="{Binding RightFrequency}"
+                                           Gain="{Binding RightGain}"
+                                           DecreaseCommand="{Binding DecreaseRightFrequencyCommand}"
+                                           IncreaseCommand="{Binding IncreaseRightFrequencyCommand}"/>
+                    </Grid>
                 </StackPanel>
-
-                <!-- 컨트롤 버튼 -->
-                <Grid Grid.Row="2" Margin="12,8,12,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="16"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-
-                    <Button Grid.Column="0" 
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Background="#6C63FF"
-                        BorderBrush="#6C63FF"
-                        Foreground="White"
-                        Command="{Binding TogglePlayCommand}"
-                        Height="56"
-                        materialDesign:ButtonAssist.CornerRadius="28"
-                        materialDesign:ElevationAssist.Elevation="Dp4">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="{Binding PlayButtonIcon}" 
-                                                 Width="24" 
-                                                 Height="24"
-                                                 VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding PlayButtonText}" 
-                                   Margin="12,0,8,0"
-                                   FontSize="16"
-                                   FontWeight="Medium"
-                                   VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Grid.Column="2" 
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        BorderBrush="#6C63FF"
-                        Foreground="#6C63FF"
-                        Command="{Binding ShowTimerCommand}"
-                        Height="48"
-                        materialDesign:ButtonAssist.CornerRadius="24">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Timer" 
-                                                 Width="20" 
-                                                 Height="20"
-                                                 VerticalAlignment="Center"/>
-                            <TextBlock Text="Timer" 
-                                   Margin="8,0,0,0"
-                                   VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </Grid>
             </Grid>
         </ScrollViewer>
     </Grid>

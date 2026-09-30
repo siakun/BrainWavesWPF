@@ -193,6 +193,7 @@ BrainWavesWPF
 │  │     ├─ UpdatesViewModel.cs
 │  │     └─ WavesViewModel.cs
 │  └─ BrainWaves.sln
+├─ build.bat
 ├─ CLAUDE.md
 ├─ docs
 │  ├─ wpf-implicit-style-inside-control-template.md

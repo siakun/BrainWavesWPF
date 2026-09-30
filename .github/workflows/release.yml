@@ -1,21 +1,21 @@
 name: Build and Release
 
-# INTENT: v<버전> 태그를 push하면 Velopack 설치 패키지를 만들어 GitHub 릴리스로 게시한다.
+# INTENT: 릴리스 태그를 push하면 Velopack 설치 패키지를 만들어 GitHub 릴리스로 게시한다.
 # 앱은 Siakun.AutoUpdate로 이 릴리스를 조회해 업데이트하고 버전을 전환한다. 라이브러리는 릴리스마다
 # full nupkg 하나와 releases.win.json이 있어야 그 릴리스를 설치 대상으로 보므로, 올리는 파일 구성을 바꿀 때는
 # 그 조건이 지켜지는지 먼저 확인한다.
-# 수동 실행(workflow_dispatch)은 릴리스를 만들지 않고 패키지를 아티팩트로만 올린다.
+# 로컬의 build.bat은 이 워크플로와 같은 검증과 패키징을 한다. 한쪽을 고치면 다른 쪽도 함께 고친다.
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
+      - 'v*'      # v0.2.0, v1.0.0 등
+      - '[0-9]*'  # 0.2.0 (v 없는 태그도 지원)
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  build:
     runs-on: windows-latest
 
     steps:
@@ -27,38 +27,56 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # 버전은 프로젝트 파일 한 곳에서 읽는다. 태그와 다르면 게시하기 전에 멈춘다.
-    - name: Resolve version
+    - name: Extract version from tag
       id: version
-      shell: pwsh
+      shell: bash
       run: |
-        $version = dotnet msbuild BrainWaves/BrainWaves/BrainWaves.csproj -getProperty:Version -nologo
-        if ('${{ github.ref_type }}' -eq 'tag') {
-          $tagVersion = '${{ github.ref_name }}'.TrimStart('v')
-          if ($tagVersion -ne $version) {
-            throw "Tag version ($tagVersion) does not match project version ($version)."
-          }
-        }
-        "version=$version" >> $env:GITHUB_OUTPUT
+        TAG=${GITHUB_REF#refs/tags/}
+        # v 접두사 제거 (v0.2.0 -> 0.2.0)
+        VERSION=${TAG#v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-    - name: Publish
+    # INTENT: 태그와 프로젝트 버전이 다르거나 업데이트 내역이 빠진 배포를 막는다.
+    # 사용자용 내역은 버전별 파일 한 곳에서 관리하고 GitHub 릴리스 본문과 Velopack 패키지에 함께 전달한다.
+    - name: Validate release version and notes
+      id: release
+      shell: pwsh
+      env:
+        RELEASE_VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        $projectVersion = dotnet msbuild BrainWaves/BrainWaves/BrainWaves.csproj -getProperty:Version -nologo
+        if ($env:RELEASE_VERSION -ne $projectVersion) {
+          throw "Release tag version ($env:RELEASE_VERSION) does not match project version ($projectVersion)."
+        }
+        $notesPath = "docs/releases/$projectVersion.md"
+        if (-not (Test-Path -LiteralPath $notesPath -PathType Leaf)) {
+          throw "Release notes are missing: $notesPath"
+        }
+        $notes = Get-Content -LiteralPath $notesPath -Raw
+        $notesBody = $notes -replace '(?s)<!--.*?-->', ''
+        if ($notesBody -notmatch '(?m)^## [^\s]' -or $notesBody -notmatch '(?m)^- [^\s]') {
+          throw "Release notes must contain Markdown headings and a list of changes: $notesPath"
+        }
+        "notes_path=$notesPath" >> $env:GITHUB_OUTPUT
+
+    - name: Publish application
       run: dotnet publish BrainWaves/BrainWaves/BrainWaves.csproj -c Release -r win-x64 --self-contained true -o publish
 
     # vpk 버전은 .config/dotnet-tools.json에 고정한다. 설치 폴더의 Update.exe는 앱의 Velopack 라이브러리가 아니라
     # 패키징한 vpk에서 오므로, 최신을 그때그때 받으면 릴리스마다 검증하지 않은 조합이 배포된다.
     # 앱이 쓰는 Velopack(Siakun.AutoUpdate의 의존성)과 같은 버전을 고른다.
-    - name: Install vpk
+    - name: Install Velopack
       run: dotnet tool restore
 
     # delta 패키지를 만들려면 직전 릴리스의 full 패키지가 기준으로 있어야 한다.
     # 이 단계가 없으면 릴리스마다 full만 올라가 사용자가 매번 전체를 다시 받는다.
     # 직전 Velopack 릴리스가 없으면(첫 릴리스) 실패해도 계속 진행해 full만 배포한다.
-    - name: Download previous release
-      if: github.ref_type == 'tag'
+    - name: Download previous release (for delta)
       continue-on-error: true
       run: dotnet vpk download github --repoUrl "https://github.com/${{ github.repository }}" --token "${{ secrets.GITHUB_TOKEN }}" --outputDir releases
 
-    - name: Pack
+    - name: Pack with Velopack
       run: >-
         dotnet vpk pack
         --packId BrainWaves
@@ -67,33 +85,42 @@ jobs:
         --mainExe BrainWaves.exe
         --packTitle BrainWaves
         --icon BrainWaves/BrainWaves/Resources/BrainWaves.ico
+        --releaseNotes "${{ steps.release.outputs.notes_path }}"
         --outputDir releases
 
     # 직전 릴리스에서 받은 패키지는 delta의 기준으로만 쓰고 이번 릴리스에는 올리지 않는다.
     # 한 릴리스에 full 패키지가 둘 이상 있으면 앱의 버전 목록 조회가 그 릴리스를 거부한다.
-    - name: Keep only this release's files
+    - name: Remove unnecessary files
       shell: pwsh
       run: |
         $version = '${{ steps.version.outputs.version }}'
         $keep = @("BrainWaves-$version-full.nupkg", "BrainWaves-$version-delta.nupkg")
         Get-ChildItem releases -Filter *.nupkg | Where-Object { $keep -notcontains $_.Name } | Remove-Item
         Remove-Item releases/assets.win.json, releases/RELEASES -ErrorAction SilentlyContinue
-        Get-ChildItem releases
 
-    - name: Create GitHub release
-      if: github.ref_type == 'tag'
+    # 설치 파일 이름에 버전과 아키텍처를 넣어 받은 파일만 보고도 무엇인지 알게 한다.
+    # 앱의 업데이트는 nupkg와 releases.win.json만 읽으므로 설치 파일의 이름은 업데이트 동작과 무관하다.
+    - name: Rename release files (MS style)
+      shell: pwsh
+      run: |
+        $version = '${{ steps.version.outputs.version }}'
+        Rename-Item releases/BrainWaves-win-Setup.exe "BrainWaves-Setup-$version-x64.exe"
+        Rename-Item releases/BrainWaves-win-Portable.zip "BrainWaves-Portable-$version-x64.zip"
+
+    - name: List release files
+      shell: pwsh
+      run: Get-ChildItem releases
+
+    - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: Release ${{ steps.version.outputs.tag }}
+        body_path: ${{ steps.release.outputs.notes_path }}
+        draft: false
+        prerelease: ${{ contains(steps.version.outputs.version, '-') }}
         files: |
           releases/*.nupkg
           releases/releases.win.json
-          releases/BrainWaves-win-Setup.exe
-          releases/BrainWaves-win-Portable.zip
-        prerelease: ${{ contains(steps.version.outputs.version, '-') }}
-        generate_release_notes: true
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: BrainWaves-${{ steps.version.outputs.version }}-win-x64
-        path: releases/
+          releases/BrainWaves-Setup-*.exe
+          releases/BrainWaves-Portable-*.zip

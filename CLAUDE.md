@@ -1,5 +1,5 @@
 - 이 파일이 담당하는 것: BrainWavesWPF의 구조, 화면과 창 크기 정책, 디자인 시스템과 자동 업데이트가 연결된 자리입니다.
-- 위치만 참조하는 것: 빌드와 릴리스 명령은 `.claude/build_and_release.md`에, 색과 글꼴 값은 `BrainWaves/BrainWaves/Resources/Theme/Palette.xaml`에 있습니다.
+- 위치만 참조하는 것: 빌드와 릴리스 명령은 `.claude/build_and_release.md`에, 색과 글꼴 값은 `BrainWaves/BrainWaves/Resources/Theme/Palette.xaml`에, 재사용할 기술 레퍼런스는 `docs/`에 있습니다.
 - 담지 않는 것: 커밋 규칙과 푸시 정책처럼 모든 저장소에 공통인 규칙, Siakun.AutoUpdate와 Velopack의 내부 동작입니다.
 
 # BrainWavesWPF
@@ -97,6 +97,9 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 ## External Instructions
 @.claude/build_and_release.md
 
+## 기술 레퍼런스
+이 저장소에서 원인을 확인한 재사용할 WPF 지식은 `docs/`에 있습니다. 화면 스타일이나 화면 검증에서 비슷한 증상을 조사하기 전에 먼저 봅니다.
+
 ### 디자인 시스템
 색, 글꼴, 컨트롤 스타일은 `Resources/`의 사전에만 정의하고 화면은 그 키를 참조합니다. 색 값을 XAML에 직접 적지 않습니다.
 - 색은 역할로 나눕니다. 채도가 있는 색은 좌우 채널을 표시하는 두 가지(`ChannelLeft`, `ChannelRight`)뿐이고, 화면 어디에서든 같은 채널을 뜻합니다.
@@ -181,6 +184,9 @@ BrainWavesWPF
 │  │     └─ WavesViewModel.cs
 │  └─ BrainWaves.sln
 ├─ CLAUDE.md
+├─ docs
+│  ├─ wpf-implicit-style-inside-control-template.md
+│  └─ wpf-ui-state-verification-without-backend.md
 ├─ Images
 │  ├─ program_presets.png
 │  ├─ program_settings.png

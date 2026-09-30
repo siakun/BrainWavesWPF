@@ -94,10 +94,10 @@ BrainWaves는 다양한 정신 상태를 달성하는 데 도움을 주는 바�
 
 ### 옵션 1: 릴리스 다운로드
 1. [Releases](https://github.com/siakun/BrainWavesWPF/releases) 페이지로 이동
-2. 최신 릴리스의 `BrainWaves-win-Setup.exe`를 받아 실행
+2. 최신 릴리스의 `BrainWaves-Setup-<버전>-x64.exe`를 받아 실행
 3. 설치가 끝나면 BrainWaves가 시작 메뉴에 등록되고, 이후 버전은 앱이 스스로 업데이트합니다
 
-설치하지 않고 쓰려면 `BrainWaves-win-Portable.zip`을 받아 압축을 풀고 `BrainWaves.exe`를 실행합니다. 포터블 판도 자동 업데이트를 지원합니다.
+설치하지 않고 쓰려면 `BrainWaves-Portable-<버전>-x64.zip`을 받아 압축을 풀고 `BrainWaves.exe`를 실행합니다. 포터블 판도 자동 업데이트를 지원합니다.
 
 0.1.x 버전은 업데이트 기능이 없는 단일 실행 파일이라 새 버전으로 넘어가지 않습니다. 한 번만 위 방법으로 새로 받으면 그 뒤로는 자동으로 업데이트됩니다.
 

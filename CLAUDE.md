@@ -1,5 +1,5 @@
 - 이 파일이 담당하는 것: BrainWavesWPF의 구조, 화면과 창 크기 정책, 디자인 시스템과 자동 업데이트가 연결된 자리, 이 저장소의 브랜치 전략입니다.
-- 위치만 참조하는 것: 빌드와 릴리스 명령은 `.claude/build_and_release.md`에, 색과 글꼴 값은 `BrainWaves/BrainWaves/Resources/Theme/Palette.xaml`에, 재사용할 기술 레퍼런스는 `docs/`에 있습니다.
+- 위치만 참조하는 것: 빌드와 릴리스 명령은 `.claude/build_and_release.md`에, 릴리스 내역 작성 기준은 `.agents/skills/release-notes/SKILL.md`에, 색과 글꼴 값은 `BrainWaves/BrainWaves/Resources/Theme/Palette.xaml`에, 재사용할 기술 레퍼런스는 `docs/`에 있습니다.
 - 담지 않는 것: 커밋 규칙과 푸시 정책처럼 모든 저장소에 공통인 규칙, Siakun.AutoUpdate와 Velopack의 내부 동작입니다.
 
 # BrainWavesWPF
@@ -97,6 +97,9 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 ## External Instructions
 @.claude/build_and_release.md
 
+## 릴리스 내역
+릴리스마다 `docs/releases/<버전>.md`를 [release-notes 스킬](.agents/skills/release-notes/SKILL.md)의 작성 기준에 따라 작성합니다. 배포 워크플로는 이 파일이 없으면 게시하지 않고, GitHub 릴리스 본문과 설치 패키지에 같은 파일을 씁니다.
+
 ## 기술 레퍼런스
 이 저장소에서 원인을 확인한 재사용할 WPF 지식은 `docs/`에 있습니다. 화면 스타일이나 화면 검증에서 비슷한 증상을 조사하기 전에 먼저 봅니다.
 
@@ -132,6 +135,10 @@ https://github.com/siakun/BrainWavesWPF
 
 ## Project Tree
 BrainWavesWPF
+├─ .agents
+│  └─ skills
+│     └─ release-notes
+│        └─ SKILL.md
 ├─ .claude
 │  ├─ build_and_release.md
 │  ├─ compact_summary.md
@@ -193,8 +200,11 @@ BrainWavesWPF
 │  │     ├─ UpdatesViewModel.cs
 │  │     └─ WavesViewModel.cs
 │  └─ BrainWaves.sln
+├─ build.bat
 ├─ CLAUDE.md
 ├─ docs
+│  ├─ releases
+│  │  └─ <버전>.md
 │  ├─ wpf-implicit-style-inside-control-template.md
 │  └─ wpf-ui-state-verification-without-backend.md
 ├─ Images

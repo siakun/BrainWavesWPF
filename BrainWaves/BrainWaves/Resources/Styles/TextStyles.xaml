@@ -1,16 +1,68 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<!--
+글자 단계. 숫자와 제목은 Font.Display, 설명과 목록은 Font.Body를 쓴다.
+라벨(Text.Label)은 계기판의 눈금 이름처럼 좁은 폭의 대문자로 쓰므로 문구도 대문자로 적는다.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- 주파수 텍스트 스타일 -->
-    <Style x:Key="FrequencyText" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignHeadline3TextBlock}">
-        <Setter Property="HorizontalAlignment" Value="Center"/>
-        <Setter Property="FontWeight" Value="Medium"/>
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+    <!-- 주파수처럼 값이 바뀌는 숫자. 자릿수 폭을 고정해 값이 바뀔 때 글자가 좌우로 흔들리지 않게 한다. -->
+    <Style x:Key="Text.Readout" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Display}"/>
+        <Setter Property="FontWeight" Value="Light"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="Typography.NumeralAlignment" Value="Tabular"/>
     </Style>
 
-    <!-- 파형 타입 텍스트 스타일 -->
-    <Style x:Key="WaveTypeText" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignSubtitle1TextBlock}">
-        <Setter Property="HorizontalAlignment" Value="Center"/>
-        <Setter Property="Opacity" Value="0.8"/>
+    <Style x:Key="Text.Unit" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Display}"/>
+        <Setter Property="FontWeight" Value="Light"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}"/>
+    </Style>
+
+    <Style x:Key="Text.Label" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Display}"/>
+        <Setter Property="FontStretch" Value="SemiCondensed"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}"/>
+    </Style>
+
+    <Style x:Key="Text.PageTitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Display}"/>
+        <Setter Property="FontSize" Value="26"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+    </Style>
+
+    <Style x:Key="Text.Title" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Body}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+    </Style>
+
+    <Style x:Key="Text.Body" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Body}"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="Text.Caption" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Body}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <!-- 알릴 것이 있을 때만 나타나는 설명. 글이 비면 자리도 차지하지 않는다. -->
+    <Style x:Key="Text.Status" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+        <Style.Triggers>
+            <Trigger Property="Text" Value="">
+                <Setter Property="Visibility" Value="Collapsed"/>
+            </Trigger>
+            <Trigger Property="Text" Value="{x:Null}">
+                <Setter Property="Visibility" Value="Collapsed"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>

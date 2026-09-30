@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using BrainWaves.Model;
@@ -20,6 +21,12 @@ namespace BrainWaves.ViewModel
         [ObservableProperty]
         private bool isPresetListEmpty;
 
+        /// <summary>
+        /// 화면에 보이는 목록. 대역이 낮은 순으로 묶고, 묶음 안은 비트가 낮은 순으로 늘어놓는다.
+        /// 대역 순서가 곧 수면에서 각성으로 가는 순서라서, 사용자가 원하는 상태의 자리를 바로 찾는다.
+        /// </summary>
+        public IReadOnlyList<PresetGroup> PresetGroups { get; }
+
         public PresetsViewModel()
         {
             // MainViewModel에서 프리셋 리스트 가져오기
@@ -32,6 +39,12 @@ namespace BrainWaves.ViewModel
             );
 
             IsPresetListEmpty = PresetList.Count == 0;
+
+            PresetGroups = PresetList
+                .GroupBy(preset => preset.Band)
+                .OrderBy(group => group.Key.MinimumBeat)
+                .Select(group => new PresetGroup(group.Key, group.OrderBy(preset => preset.Resonance).ToList()))
+                .ToList();
 
             // 재생 상태 변경 메시지 수신
             WeakReferenceMessenger.Default.Register<PlaybackStateChangedMessage>(this, (r, m) =>
@@ -88,6 +101,11 @@ namespace BrainWaves.ViewModel
         }
     }
 
+    /// <summary>
+    /// 같은 뇌파 대역에 속하는 프리셋 묶음
+    /// </summary>
+    public sealed record PresetGroup(BrainwaveBand Band, IReadOnlyList<PresetDataViewModel> Presets);
+
     // PresetData를 확장하여 UI 관련 속성 추가
     public partial class PresetDataViewModel : PresetData
     {
@@ -96,57 +114,6 @@ namespace BrainWaves.ViewModel
 
         public PresetDataViewModel(PresetData preset) : base(preset.PresetName, preset.LeftWave, preset.RightWave)
         {
-        }
-
-        public string WaveIcon
-        {
-            get
-            {
-                return WaveName switch
-                {
-                    "Gamma" => "LightningBolt",
-                    "Beta" => "Brain",
-                    "Alpha" => "Meditation",
-                    "Theta" => "Sleep",
-                    "Delta" => "PowerSleep",
-                    "Infra-Low" => "Pulse",
-                    _ => "SineWave"
-                };
-            }
-        }
-
-        public string WaveColor
-        {
-            get
-            {
-                return WaveName switch
-                {
-                    "Gamma" => "#9C27B0", // Purple
-                    "Beta" => "#2196F3",  // Blue
-                    "Alpha" => "#4CAF50", // Green
-                    "Theta" => "#FF9800", // Orange
-                    "Delta" => "#F44336", // Red
-                    "Infra-Low" => "#795548", // Brown
-                    _ => "#607D8B" // Blue Grey
-                };
-            }
-        }
-
-        public string WaveColorDark
-        {
-            get
-            {
-                return WaveName switch
-                {
-                    "Gamma" => "#6A1B9A", // Purple Dark
-                    "Beta" => "#1565C0",  // Blue Dark
-                    "Alpha" => "#2E7D32", // Green Dark
-                    "Theta" => "#E65100", // Orange Dark
-                    "Delta" => "#B71C1C", // Red Dark
-                    "Infra-Low" => "#4E342E", // Brown Dark
-                    _ => "#37474F" // Blue Grey Dark
-                };
-            }
         }
     }
 

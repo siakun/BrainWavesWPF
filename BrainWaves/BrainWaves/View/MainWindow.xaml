@@ -1,5 +1,6 @@
-﻿<!--
-하단 네비게이션 바가 있는 프레임 기반 네비게이션 컨테이너
+<!--
+하단 탭이 있는 프레임 기반 네비게이션 컨테이너.
+앱 이름은 Windows 제목 표시줄이 보여 주므로 창 안에 따로 머리 막대를 두지 않고, 그 자리를 각 페이지에 준다.
 -->
 <Window x:Class="BrainWaves.View.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -11,131 +12,83 @@
         xmlns:views="clr-namespace:BrainWaves.View"
         xmlns:behaviors="clr-namespace:BrainWaves.Behaviors"
         mc:Ignorable="d"
-        Title="BrainWaves - Binaural Beat Generator"
+        Title="BrainWaves"
         Width="450" MinWidth="450"
         SizeToContent="Height"
         behaviors:WindowAutoFit.IsEnabled="True"
+        behaviors:TitleBar.Background="{StaticResource Color.Background}"
+        behaviors:TitleBar.Foreground="{StaticResource Color.TextMuted}"
         WindowStartupLocation="CenterScreen"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
+        TextElement.Foreground="{StaticResource Brush.Text}"
         TextElement.FontSize="13"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}">
+        Background="{StaticResource Brush.Background}"
+        FontFamily="{StaticResource Font.Body}">
     <Window.DataContext>
         <vm:MainViewModel/>
     </Window.DataContext>
 
-    <materialDesign:DrawerHost IsLeftDrawerOpen="False">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <!-- App Bar -->
-            <materialDesign:ColorZone Grid.Row="0"
-                                      Padding="16"
-                                      materialDesign:ElevationAssist.Elevation="Dp4"
-                                      Mode="PrimaryMid">
-                <DockPanel>
-                    <materialDesign:PopupBox DockPanel.Dock="Right"
-                                             PlacementMode="BottomAndAlignRightEdges">
-                        <StackPanel>
-                            <Button Content="About" />
-                            <Button Content="Help" />
-                            <Separator />
-                            <Button Content="Exit" Click="ExitApp_Click" />
-                        </StackPanel>
-                    </materialDesign:PopupBox>
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Brain" Width="24" Height="24" VerticalAlignment="Center" />
-                        <TextBlock Text="BrainWaves" 
-                                   VerticalAlignment="Center" 
-                                   Margin="16,0,0,0"
-                                   Style="{StaticResource MaterialDesignHeadline6TextBlock}" />
+        <!-- 디자이너에서는 URI 탐색에 의존하지 않고 페이지 인스턴스를 직접 제공한다. -->
+        <Frame Grid.Row="0"
+               Source="{Binding ShowingPageName}"
+               d:Source="{x:Null}"
+               d:Content="{d:DesignInstance Type=views:Waves, IsDesignTimeCreatable=True}"
+               NavigationUIVisibility="Hidden"
+               Focusable="False"/>
+
+        <!-- 하단 탭 -->
+        <Border Grid.Row="1"
+                Background="{StaticResource Brush.Surface}"
+                BorderBrush="{StaticResource Brush.Line}"
+                BorderThickness="0,1,0,0">
+            <Grid Height="60">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <RadioButton Grid.Column="0"
+                             Style="{StaticResource NavTab}"
+                             Command="{Binding NavigateFrameCommand}"
+                             CommandParameter="pack://application:,,,/View/Waves.xaml"
+                             AutomationProperties.Name="Waves"
+                             IsChecked="True">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="SineWave" Width="22" Height="22" HorizontalAlignment="Center"/>
+                        <TextBlock Text="WAVES" Margin="0,3,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
-                </DockPanel>
-            </materialDesign:ColorZone>
+                </RadioButton>
 
-            <!-- 디자이너에서는 URI 탐색에 의존하지 않고 페이지 인스턴스를 직접 제공한다. -->
-            <Frame Grid.Row="1"
-                   Source="{Binding ShowingPageName}"
-                   d:Source="{x:Null}"
-                   d:Content="{d:DesignInstance Type=views:Waves, IsDesignTimeCreatable=True}"
-                   NavigationUIVisibility="Hidden"/>
+                <RadioButton Grid.Column="1"
+                             Style="{StaticResource NavTab}"
+                             Command="{Binding NavigateFrameCommand}"
+                             CommandParameter="pack://application:,,,/View/Presets.xaml"
+                             AutomationProperties.Name="Presets">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="PlaylistMusicOutline" Width="22" Height="22" HorizontalAlignment="Center"/>
+                        <TextBlock Text="PRESETS" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </RadioButton>
 
-            <!-- Bottom Navigation -->
-            <materialDesign:Card Grid.Row="2"
-                                 UniformCornerRadius="0"
-                                 Padding="0"
-                                 materialDesign:ElevationAssist.Elevation="Dp8"
-                                 Background="#1A1A2E">
-                <Grid Height="80">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-
-                    <RadioButton x:Name="WavesNav"
-                                 Grid.Column="0"
-                                 Style="{StaticResource MaterialDesignTabRadioButton}"
-                                 Command="{Binding NavigateFrameCommand}"
-                                 CommandParameter="pack://application:,,,/View/Waves.xaml"
-                                 IsChecked="True"
-                                 Height="80">
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="Waveform" 
-                                                     Width="24" 
-                                                     Height="24"
-                                                     HorizontalAlignment="Center"/>
-                            <TextBlock Text="Waves" 
-                                       HorizontalAlignment="Center"
-                                       Margin="0,4,0,0"
-                                       FontSize="12"/>
-                        </StackPanel>
-                    </RadioButton>
-
-                    <RadioButton x:Name="PresetsNav"
-                                 Grid.Column="1"
-                                 Style="{StaticResource MaterialDesignTabRadioButton}"
-                                 Command="{Binding NavigateFrameCommand}"
-                                 CommandParameter="pack://application:,,,/View/Presets.xaml"
-                                 Height="80">
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="PlaylistPlay" 
-                                                     Width="24" 
-                                                     Height="24"
-                                                     HorizontalAlignment="Center"/>
-                            <TextBlock Text="Presets" 
-                                       HorizontalAlignment="Center"
-                                       Margin="0,4,0,0"
-                                       FontSize="12"/>
-                        </StackPanel>
-                    </RadioButton>
-
-                    <RadioButton x:Name="SettingsNav"
-                                 Grid.Column="2"
-                                 Style="{StaticResource MaterialDesignTabRadioButton}"
-                                 Command="{Binding NavigateFrameCommand}"
-                                 CommandParameter="pack://application:,,,/View/Settings.xaml"
-                                 Height="80">
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="Settings" 
-                                                     Width="24" 
-                                                     Height="24"
-                                                     HorizontalAlignment="Center"/>
-                            <TextBlock Text="Settings" 
-                                       HorizontalAlignment="Center"
-                                       Margin="0,4,0,0"
-                                       FontSize="12"/>
-                        </StackPanel>
-                    </RadioButton>
-                </Grid>
-            </materialDesign:Card>
-        </Grid>
-    </materialDesign:DrawerHost>
+                <RadioButton Grid.Column="2"
+                             Style="{StaticResource NavTab}"
+                             Command="{Binding NavigateFrameCommand}"
+                             CommandParameter="pack://application:,,,/View/Settings.xaml"
+                             AutomationProperties.Name="Settings">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="CogOutline" Width="22" Height="22" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SETTINGS" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </RadioButton>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>

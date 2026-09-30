@@ -6,7 +6,8 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    
+    <ApplicationIcon>Resources\BrainWaves.ico</ApplicationIcon>
+
     <!-- 버전 정보 -->
     <Version>0.1.1</Version>
     <AssemblyVersion>0.1.1.0</AssemblyVersion>

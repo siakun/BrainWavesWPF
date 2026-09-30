@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -8,17 +8,21 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ApplicationIcon>Resources\BrainWaves.ico</ApplicationIcon>
 
-    <!-- 버전 정보 -->
-    <Version>0.1.1</Version>
-    <AssemblyVersion>0.1.1.0</AssemblyVersion>
-    <FileVersion>0.1.1.0</FileVersion>
-    
-    <!-- 단일 파일 퍼블리시 설정 -->
-    <PublishSingleFile>true</PublishSingleFile>
+    <!-- INTENT: 버전은 여기 한 곳에서만 정한다. 어셈블리 버전과 파일 버전은 SDK가 이 값에서 도출하고,
+         릴리스 워크플로는 태그가 이 값과 다르면 배포를 멈춘다. -->
+    <Version>0.2.0</Version>
+
+    <!-- INTENT: Velopack이 앱을 폴더째 설치하고 교체하므로 단일 파일로 묶지 않는다.
+         단일 파일은 실행할 때마다 네이티브 라이브러리를 임시 폴더에 풀고, 릴리스마다 파일 하나가 통째로
+         바뀌어 delta가 커진다. 폴더로 두면 바뀌지 않은 런타임 파일은 delta에서 빠진다. -->
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishReadyToRun>true</PublishReadyToRun>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <!-- INTENT: Velopack 초기화를 WPF보다 먼저 실행해야 하므로 진입점은 Program.Main이 맡는다.
+         App.xaml을 일반 Page로 바꾸면 WPF가 Main을 만들지 않지만, XAML 디자이너가 앱 리소스를 찾지 못해
+         페이지 미리보기가 깨진다. ApplicationDefinition은 그대로 두고 진입점만 지정한다. -->
+    <StartupObject>BrainWaves.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +37,9 @@
     <PackageReference Include="MaterialDesignColors" Version="5.2.2-ci998" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.2-ci998" />
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <!-- INTENT: Velopack은 이 패키지의 의존성으로 들어온다. 앱에서 Velopack 버전을 따로 지정하면
+         라이브러리가 동작을 확인한 버전과 어긋날 수 있으므로 직접 참조하지 않는다. -->
+    <PackageReference Include="Siakun.AutoUpdate" Version="0.1.0" />
   </ItemGroup>
 
 </Project>

@@ -42,6 +42,11 @@ BrainWaves는 다양한 정신 상태를 달성하는 데 도움을 주는 바�
 - 뇌파 대역을 그리스 문자(δ, θ, α, β, γ)로 표시하고 프리셋을 대역별로 묶음
 - 재생 중에는 두 채널의 파형이 서로 다른 속도로 흐름 (Windows에서 애니메이션을 끄면 멈춤)
 
+### 🔄 **자동 업데이트**
+- 새 버전을 백그라운드에서 받아 두고 앱을 닫을 때 설치
+- 원하는 버전을 골라 설치하거나 이전 버전으로 되돌리기
+- 베타 버전 수신 선택
+
 ## 📸 스크린샷
 
 <table>
@@ -59,7 +64,7 @@ BrainWaves는 다양한 정신 상태를 달성하는 데 도움을 주는 바�
     <td align="center">
       <img src="Images/program_settings.png" width="250"/><br>
       <b>설정</b><br>
-      <sub>앱 정보 및 구성</sub>
+      <sub>업데이트와 앱 정보</sub>
     </td>
   </tr>
 </table>
@@ -79,23 +84,27 @@ BrainWaves는 다양한 정신 상태를 달성하는 데 도움을 주는 바�
 
 ## 💻 시스템 요구사항
 
-- **OS**: Windows 10 이상
-- **프레임워크**: .NET 8.0 Runtime
+- **OS**: Windows 10 이상 (64비트)
+- **런타임**: 설치 파일에 포함되어 있어 따로 설치하지 않아도 됩니다
 - **오디오**: 스테레오 헤드폰 또는 이어폰 (바이노럴 효과를 위해 필수)
 - **RAM**: 최소 4GB
-- **저장 공간**: 100MB 여유 공간
+- **저장 공간**: 300MB 여유 공간
 
 ## 🚀 설치 방법
 
 ### 옵션 1: 릴리스 다운로드
-1. [Releases](https://github.com/Sia819/BrainWavesWPF/releases) 페이지로 이동
-2. 최신 `BrainWaves.zip` 다운로드
-3. 압축 해제 후 `BrainWaves.exe` 실행
+1. [Releases](https://github.com/siakun/BrainWavesWPF/releases) 페이지로 이동
+2. 최신 릴리스의 `BrainWaves-win-Setup.exe`를 받아 실행
+3. 설치가 끝나면 BrainWaves가 시작 메뉴에 등록되고, 이후 버전은 앱이 스스로 업데이트합니다
+
+설치하지 않고 쓰려면 `BrainWaves-win-Portable.zip`을 받아 압축을 풀고 `BrainWaves.exe`를 실행합니다. 포터블 판도 자동 업데이트를 지원합니다.
+
+0.1.x 버전은 업데이트 기능이 없는 단일 실행 파일이라 새 버전으로 넘어가지 않습니다. 한 번만 위 방법으로 새로 받으면 그 뒤로는 자동으로 업데이트됩니다.
 
 ### 옵션 2: 소스에서 빌드
 ```bash
 # 저장소 클론
-git clone https://github.com/Sia819/BrainWavesWPF.git
+git clone https://github.com/siakun/BrainWavesWPF.git
 cd BrainWavesWPF
 
 # 프로젝트 빌드
@@ -114,6 +123,11 @@ dotnet run --project BrainWaves/BrainWaves/BrainWaves.csproj
    - **사용자 정의**: Waves 탭에서 수동으로 주파수 조정
 3. Waves 탭 위쪽의 **재생 버튼**을 눌러 세션 시작
 4. 필요에 따라 게인 슬라이더로 **볼륨 조정**
+
+### 업데이트
+- 자동 업데이트를 켜 두면 새 버전을 받아 두었다가 앱을 닫을 때 설치합니다. 창 아래에 알림이 뜨면 **Restart now**로 바로 설치할 수도 있습니다
+- Settings 탭의 **Install another version**에서 특정 버전을 골라 설치하거나 이전 버전으로 되돌릴 수 있습니다. 최신이 아닌 버전을 고르면 자동 업데이트가 꺼집니다
+- 베타 버전을 받으려면 Settings 탭에서 **Beta versions**를 켭니다
 
 ### 프로 팁
 - 🎧 최상의 결과를 위해 좋은 품질의 헤드폰 사용
@@ -134,7 +148,8 @@ dotnet run --project BrainWaves/BrainWaves/BrainWaves.csproj
 - **아키텍처**: MVVM 패턴
 - **UI 라이브러리**: MaterialDesignThemes (5.2.2)
 - **MVVM 프레임워크**: CommunityToolkit.Mvvm (8.4.0)
-- **오디오**: 커스텀 WAV 생성을 통한 System.Media.SoundPlayer
+- **오디오**: NAudio로 좌우 채널 사인파를 실시간 생성
+- **배포와 업데이트**: Velopack 설치 패키지, [Siakun.AutoUpdate](https://github.com/siakun/Siakun.AutoUpdate)
 
 ## 🤝 기여하기
 
@@ -163,7 +178,7 @@ dotnet run --project BrainWaves/BrainWaves/BrainWaves.csproj
 </p>
 
 <p align="center">
-  <a href="https://github.com/Sia819/BrainWavesWPF/issues">버그 신고</a> •
-  <a href="https://github.com/Sia819/BrainWavesWPF/issues">기능 요청</a>
+  <a href="https://github.com/siakun/BrainWavesWPF/issues">버그 신고</a> •
+  <a href="https://github.com/siakun/BrainWavesWPF/issues">기능 요청</a>
 </p>
 ```

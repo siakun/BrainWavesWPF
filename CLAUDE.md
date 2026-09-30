@@ -1,6 +1,6 @@
-- 이 파일이 담당하는 것: BrainWavesWPF의 구조, 화면과 창 크기 정책, 디자인 시스템의 자리입니다.
+- 이 파일이 담당하는 것: BrainWavesWPF의 구조, 화면과 창 크기 정책, 디자인 시스템과 자동 업데이트가 연결된 자리입니다.
 - 위치만 참조하는 것: 빌드와 릴리스 명령은 `.claude/build_and_release.md`에, 색과 글꼴 값은 `BrainWaves/BrainWaves/Resources/Theme/Palette.xaml`에 있습니다.
-- 담지 않는 것: 커밋 규칙과 푸시 정책처럼 모든 저장소에 공통인 규칙입니다.
+- 담지 않는 것: 커밋 규칙과 푸시 정책처럼 모든 저장소에 공통인 규칙, Siakun.AutoUpdate와 Velopack의 내부 동작입니다.
 
 # BrainWavesWPF
 BrainWaves는 바이노럴 비트를 생성하는 WPF 데스크톱 애플리케이션입니다.
@@ -9,8 +9,8 @@ STACK: .NET 8, WPF, MVVM
 
 View/          : XAML UI (프레임 네비게이션)
 ViewModel/     : 화면 로직과 상태
-Model/         : 프리셋과 뇌파 대역
-Services/      : 오디오 재생
+Model/         : 프리셋, 뇌파 대역, 사용자 설정
+Services/      : 오디오 재생, 설정 저장, 업데이트 연결
 Converters/    : 값 변환기
 Behaviors/     : 첨부 속성으로 붙이는 UI 동작
 Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
@@ -28,6 +28,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 13가지 사전 설정된 뇌파 상태 (집중, 수면, 명상 등)
 - 실시간 주파수 조절 및 볼륨 컨트롤
 - 뇌파 대역을 그리스 문자(δ, θ, α, β, γ)로 표시하고 프리셋을 대역별로 묶음
+- GitHub 릴리스를 통한 자동 업데이트와 버전 선택
 
 ## Project Architecture
 애플리케이션은 세 가지 주요 레이어로 구성된 MVVM 패턴을 따릅니다:
@@ -37,27 +38,36 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - **CommunityToolkit.Mvvm** - 소스 생성기 기반 MVVM 프레임워크, ObservableObject, RelayCommand, Messaging 제공
 - **MaterialDesignThemes**, **MaterialDesignColors** - 아이콘(PackIcon)과 기본 컨트롤 스타일
 - **NAudio** - 좌우 채널 사인파의 실시간 재생
+- **Siakun.AutoUpdate** - GitHub 릴리스 조회, 업데이트 다운로드, 버전 전환. Velopack은 이 패키지의 의존성으로 들어오므로 앱에서 따로 참조하지 않습니다
 
+
+### 진입점
+- `Program.cs` - Velopack 초기화를 WPF보다 먼저 실행한 뒤 App을 띄웁니다. 프로젝트 파일의 `StartupObject`가 이 클래스를 진입점으로 지정하고, `App.xaml`은 XAML 디자이너가 앱 리소스를 읽도록 ApplicationDefinition으로 둡니다.
+- `AppInfo.cs` - 저장소 주소, 개발 빌드 버전, 설정 폴더처럼 여러 곳이 함께 쓰는 고정 정보
 
 ### Services (`/Services/`)
 - `AudioService.cs` - 재생 상태를 가진 싱글톤 오디오 재생 관리자. 동시 재생 방지와 디바운싱 포함
+- `SettingsStore.cs` - 사용자 설정을 `%AppData%\BrainWaves\settings.json`에 읽고 저장합니다. 설정 값의 원본은 여기 하나입니다.
+- `AppUpdates.cs` - Siakun.AutoUpdate의 `UpdateService`에 이 앱의 저장소 주소와 설정 저장을 연결합니다.
 
 ### Model (`/Model/`)
 - `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋
 - `BrainwaveBand.cs` - 비트가 속하는 뇌파 대역의 경계, 기호, 설명. 대역 판정은 이 표 한 곳에서만 합니다.
+- `AppSettings.cs` - 자동 업데이트, 베타 수신 같은 사용자 설정
 
 ### View (`/View/`)
-- `MainWindow.xaml` - 프레임과 하단 탭
+- `MainWindow.xaml` - 프레임, 업데이트 알림 막대, 하단 탭
 - `Waves.xaml` - 지금 들리는 비트와 재생 버튼, 전체 음량, 좌우 채널 조절
 - `ChannelCard.xaml` - 한 채널의 주파수와 음량 카드. Waves가 좌우에 하나씩 놓습니다.
 - `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록
-- `Settings.xaml` - 앱 소개, 오픈소스 라이브러리, GitHub 링크
+- `Settings.xaml` - 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
 
 ### ViewModel (`/ViewModel/`)
 - `MainViewModel.cs` - 네비게이션 처리 및 프리셋 컬렉션 관리 (집중, 수면, 명상 등 13개의 사전 구성 상태)
 - `WavesViewModel.cs` - 주파수 조절, 재생/정지, 볼륨 컨트롤 관리. WeakReferenceMessenger를 통한 프리셋 선택 수신
 - `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장
-- `SettingsViewModel.cs` - 설정 화면의 버전 표시, 링크와 오픈소스 목록
+- `SettingsViewModel.cs` - 설정 화면의 링크와 오픈소스 목록
+- `UpdatesViewModel.cs` - 업데이트 상태와 조작. 앱 전체에 하나만 두고 메인 창의 알림 막대와 설정 화면이 함께 봅니다.
 
 ### Converters (`/Converters/`)
 - `BoolToPlayStopTextConverter.cs` - 재생 상태에 따른 텍스트 변환
@@ -73,6 +83,16 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 
 ### 핵심 기능
 - `PlaySound.cs` - NAudio로 좌우 채널에 서로 다른 주파수의 사인파를 실시간으로 생성해 재생
+
+## 자동 업데이트
+배포는 Velopack 설치 패키지로 하고, 업데이트 확인과 다운로드, 버전 전환, 종료 시 적용은 Siakun.AutoUpdate가 맡습니다. 앱은 다음만 연결합니다.
+
+- `Program.Main`이 가장 먼저 `VelopackApp`을 실행합니다. 시작할 때 자동 적용은 끕니다.
+- `App.OnStartup`이 창을 그린 뒤 백그라운드 확인을 시작하고, 라이브러리의 재시작 요청을 받으면 정상 종료합니다.
+- `App.OnExit`이 소리를 멈춘 뒤 받아 둔 업데이트의 적용을 예약합니다.
+- 설정 화면과 알림 막대는 `UpdatesViewModel`의 상태만 봅니다. 설정 값은 `SettingsStore`가 원본이므로 화면이 값을 따로 들고 있다가 덮어쓰지 않게 합니다.
+
+릴리스에 올리는 파일 구성은 라이브러리가 기대하는 형태를 따라야 합니다. 절차와 이유는 `.claude/build_and_release.md`와 `.github/workflows/release.yml`의 주석에 있습니다.
 
 ## External Instructions
 @.claude/build_and_release.md
@@ -103,10 +123,16 @@ BrainWavesWPF
 │  ├─ build_and_release.md
 │  ├─ compact_summary.md
 │  └─ settings.local.json
+├─ .config
+│  └─ dotnet-tools.json
+├─ .github
+│  └─ workflows
+│     └─ release.yml
 ├─ BrainWaves
 │  ├─ BrainWaves
 │  │  ├─ App.xaml
 │  │  ├─ App.xaml.cs
+│  │  ├─ AppInfo.cs
 │  │  ├─ AssemblyInfo.cs
 │  │  ├─ Behaviors
 │  │  │  ├─ TitleBar.cs
@@ -115,9 +141,11 @@ BrainWavesWPF
 │  │  ├─ Converters
 │  │  │  └─ BoolToPlayStopTextConverter.cs
 │  │  ├─ Model
+│  │  │  ├─ AppSettings.cs
 │  │  │  ├─ BrainwaveBand.cs
 │  │  │  └─ PresetData.cs
 │  │  ├─ PlaySound.cs
+│  │  ├─ Program.cs
 │  │  ├─ Resources
 │  │  │  ├─ Animations
 │  │  │  │  └─ Storyboards.xaml
@@ -131,7 +159,9 @@ BrainWavesWPF
 │  │  │  └─ Theme
 │  │  │     └─ Palette.xaml
 │  │  ├─ Services
-│  │  │  └─ AudioService.cs
+│  │  │  ├─ AppUpdates.cs
+│  │  │  ├─ AudioService.cs
+│  │  │  └─ SettingsStore.cs
 │  │  ├─ View
 │  │  │  ├─ ChannelCard.xaml
 │  │  │  ├─ ChannelCard.xaml.cs
@@ -147,6 +177,7 @@ BrainWavesWPF
 │  │     ├─ MainViewModel.cs
 │  │     ├─ PresetsViewModel.cs
 │  │     ├─ SettingsViewModel.cs
+│  │     ├─ UpdatesViewModel.cs
 │  │     └─ WavesViewModel.cs
 │  └─ BrainWaves.sln
 ├─ CLAUDE.md

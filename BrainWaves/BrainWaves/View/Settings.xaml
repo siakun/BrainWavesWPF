@@ -1,5 +1,6 @@
 <!--
-설정 페이지. 앱 소개와 오픈소스 목록을 차례로 놓는다.
+설정 페이지. 업데이트, 앱 소개, 오픈소스 목록을 차례로 놓는다.
+업데이트 상태와 조작은 앱 전체가 공유하는 UpdatesViewModel에 있어, 버전을 받는 중에 다른 화면으로 옮겼다 돌아와도 그대로 보인다.
 오픈소스 목록은 패키지 수만큼 길어지므로 창 높이를 이 페이지에 맞추지 않는다.
 -->
 <Page x:Class="BrainWaves.View.Settings"
@@ -40,22 +41,153 @@
             <StackPanel Margin="16,20,16,24">
                 <TextBlock Style="{StaticResource Text.PageTitle}" Margin="4,0,0,0" Text="Settings"/>
 
+                <!-- 업데이트 -->
+                <TextBlock Style="{StaticResource SectionLabel}" Text="UPDATES"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <Grid Margin="16,14,16,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Text.Title}" Text="BrainWaves"/>
+                                    <TextBlock Style="{StaticResource Text.Readout}"
+                                               FontSize="14"
+                                               FontWeight="Normal"
+                                               Margin="8,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource Brush.TextMuted}"
+                                               Text="{Binding Updates.CurrentVersion}"/>
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource Text.Status}"
+                                           Margin="0,4,0,0"
+                                           Text="{Binding Updates.StatusText}"/>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource Button.Secondary}"
+                                    VerticalAlignment="Top"
+                                    Content="Check now"
+                                    Command="{Binding Updates.CheckForUpdatesCommand}"/>
+                        </Grid>
+
+                        <Border Style="{StaticResource Divider}"/>
+
+                        <Grid Margin="16,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Style="{StaticResource Text.Title}" Text="Automatic updates"/>
+                                <TextBlock Style="{StaticResource Text.Caption}" Margin="0,3,0,0"
+                                           Text="Download new versions in the background and install them when you close BrainWaves."/>
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1"
+                                          Style="{StaticResource Toggle.Switch}"
+                                          VerticalAlignment="Center"
+                                          IsChecked="{Binding Updates.AutoUpdateEnabled}"
+                                          AutomationProperties.Name="Automatic updates"/>
+                        </Grid>
+
+                        <Border Style="{StaticResource Divider}"/>
+
+                        <Grid Margin="16,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Style="{StaticResource Text.Title}" Text="Beta versions"/>
+                                <TextBlock Style="{StaticResource Text.Caption}" Margin="0,3,0,0"
+                                           Text="Include pre-release versions in updates and in the version list."/>
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1"
+                                          Style="{StaticResource Toggle.Switch}"
+                                          VerticalAlignment="Center"
+                                          IsChecked="{Binding Updates.PrereleaseEnabled}"
+                                          AutomationProperties.Name="Beta versions"/>
+                        </Grid>
+
+                        <Border Style="{StaticResource Divider}"/>
+
+                        <StackPanel Margin="16,12,16,16">
+                            <TextBlock Style="{StaticResource Text.Title}" Text="Install another version"/>
+                            <TextBlock Style="{StaticResource Text.Caption}" Margin="0,3,0,0"
+                                       Text="Picking any version other than the newest one turns off automatic updates."/>
+
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0"
+                                          Style="{StaticResource ComboBox.Outlined}"
+                                          ItemsSource="{Binding Updates.Versions}"
+                                          SelectedItem="{Binding Updates.SelectedVersion}"
+                                          IsEnabled="{Binding Updates.CanPickVersion}"
+                                          VerticalAlignment="Center"
+                                          AutomationProperties.Name="Version">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:VersionOption}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontFamily="{StaticResource Font.Display}"
+                                                           Typography.NumeralAlignment="Tabular"
+                                                           Text="{Binding Version}"/>
+                                                <TextBlock Margin="8,0,0,0"
+                                                           Foreground="{StaticResource Brush.TextMuted}"
+                                                           Text="{Binding Tag}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Grid.Column="1"
+                                        Style="{StaticResource Button.Secondary}"
+                                        Margin="12,0,0,0"
+                                        Content="Install"
+                                        Command="{Binding Updates.InstallSelectedVersionCommand}"/>
+                            </Grid>
+
+                            <TextBlock Style="{StaticResource Text.Status}"
+                                       Margin="0,8,0,0"
+                                       Text="{Binding Updates.VersionsHint}"/>
+
+                            <StackPanel Margin="0,14,0,0"
+                                        Visibility="{Binding Updates.IsInstalling, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Grid>
+                                    <TextBlock Style="{StaticResource Text.Caption}"
+                                               Text="{Binding Updates.InstallingVersion, StringFormat='Downloading version {0}'}"/>
+                                    <TextBlock Style="{StaticResource Text.Readout}"
+                                               HorizontalAlignment="Right"
+                                               FontSize="13"
+                                               FontWeight="Normal"
+                                               Text="{Binding Updates.InstallProgress, StringFormat='{}{0}%'}"/>
+                                </Grid>
+                                <ProgressBar Style="{StaticResource ProgressBar.Line}"
+                                             Margin="0,8,0,0"
+                                             Maximum="100"
+                                             Value="{Binding Updates.InstallProgress, Mode=OneWay}"/>
+                                <Grid Margin="0,10,0,0">
+                                    <TextBlock Style="{StaticResource Text.Status}"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Updates.DownloadSize}"/>
+                                    <Button Style="{StaticResource Button.Secondary}"
+                                            HorizontalAlignment="Right"
+                                            Content="Cancel"
+                                            Command="{Binding Updates.CancelInstallCommand}"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- 소개 -->
                 <TextBlock Style="{StaticResource SectionLabel}" Text="ABOUT"/>
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="16,14,16,0">
-                            <TextBlock Style="{StaticResource Text.Title}" Text="BrainWaves"/>
-                            <TextBlock Style="{StaticResource Text.Readout}"
-                                       FontSize="14"
-                                       FontWeight="Normal"
-                                       Margin="8,0,0,0"
-                                       VerticalAlignment="Center"
-                                       Foreground="{StaticResource Brush.TextMuted}"
-                                       Text="{Binding Version}"/>
-                        </StackPanel>
                         <TextBlock Style="{StaticResource Text.Body}"
-                                   Margin="16,8,16,4"
+                                   Margin="16,14,16,4"
                                    LineHeight="20"
                                    Text="BrainWaves plays a slightly different tone in each ear. Your brain hears the difference between them as a slow pulse, the binaural beat."/>
                         <TextBlock Style="{StaticResource Text.Caption}"

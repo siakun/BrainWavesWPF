@@ -1,5 +1,5 @@
 <!--
-하단 탭이 있는 프레임 기반 네비게이션 컨테이너.
+하단 탭과 업데이트 알림 막대가 있는 프레임 기반 네비게이션 컨테이너.
 앱 이름은 Windows 제목 표시줄이 보여 주므로 창 안에 따로 머리 막대를 두지 않고, 그 자리를 각 페이지에 준다.
 -->
 <Window x:Class="BrainWaves.View.MainWindow"
@@ -33,6 +33,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- 디자이너에서는 URI 탐색에 의존하지 않고 페이지 인스턴스를 직접 제공한다. -->
@@ -43,8 +45,70 @@
                NavigationUIVisibility="Hidden"
                Focusable="False"/>
 
-        <!-- 하단 탭 -->
+        <!--
+        받아 둔 업데이트 알림. 설정 화면 밖에서도 보이도록 창에 둔다.
+        닫을 때 저절로 설치되므로 사용자가 무엇을 하지 않아도 되고, 지금 바로 설치하고 싶을 때만 누른다.
+        -->
         <Border Grid.Row="1"
+                Background="{StaticResource Brush.Surface}"
+                BorderBrush="{StaticResource Brush.Line}"
+                BorderThickness="0,1,0,0"
+                Padding="20,12"
+                Visibility="{Binding Updates.IsUpdateReady, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <materialDesign:PackIcon Grid.Column="0"
+                                         Kind="ArrowUpCircleOutline"
+                                         Width="20" Height="20"
+                                         Margin="0,0,12,0"
+                                         VerticalAlignment="Center"
+                                         Foreground="{StaticResource Brush.Text}"/>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource Text.Title}"
+                               Text="{Binding Updates.ReadyVersion, StringFormat='Version {0} is ready'}"/>
+                    <TextBlock Style="{StaticResource Text.Caption}"
+                               Text="It installs when you close BrainWaves."/>
+                </StackPanel>
+
+                <Button Grid.Column="2"
+                        Style="{StaticResource Button.Secondary}"
+                        Margin="12,0,0,0"
+                        Content="Restart now"
+                        Command="{Binding Updates.RestartNowCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- 설정 화면에서 고른 버전을 받는 중에 다른 화면으로 옮겨도 진행 상황이 보이게 한다. -->
+        <Border Grid.Row="2"
+                Background="{StaticResource Brush.Surface}"
+                BorderBrush="{StaticResource Brush.Line}"
+                BorderThickness="0,1,0,0"
+                Padding="20,12"
+                Visibility="{Binding Updates.IsInstalling, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <Grid>
+                    <TextBlock Style="{StaticResource Text.Title}"
+                               Text="{Binding Updates.InstallingVersion, StringFormat='Downloading version {0}'}"/>
+                    <TextBlock Style="{StaticResource Text.Readout}"
+                               HorizontalAlignment="Right"
+                               FontSize="14"
+                               Text="{Binding Updates.InstallProgress, StringFormat='{}{0}%'}"/>
+                </Grid>
+                <ProgressBar Style="{StaticResource ProgressBar.Line}"
+                             Margin="0,10,0,0"
+                             Maximum="100"
+                             Value="{Binding Updates.InstallProgress, Mode=OneWay}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 하단 탭 -->
+        <Border Grid.Row="3"
                 Background="{StaticResource Brush.Surface}"
                 BorderBrush="{StaticResource Brush.Line}"
                 BorderThickness="0,1,0,0">

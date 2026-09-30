@@ -13,6 +13,11 @@ namespace BrainWaves.ViewModel
 
         public ObservableCollection<PresetData> PresetList { get; set; }
 
+        /// <summary>
+        /// 창 아래쪽 업데이트 알림 막대가 보는 상태
+        /// </summary>
+        public UpdatesViewModel Updates => UpdatesViewModel.Instance;
+
         public MainViewModel()
         {
             showingPageName = new Uri("pack://application:,,,/View/Waves.xaml");

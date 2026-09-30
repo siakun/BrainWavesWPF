@@ -203,6 +203,8 @@ BrainWavesWPF
 ├─ build.bat
 ├─ CLAUDE.md
 ├─ docs
+│  ├─ releases
+│  │  └─ <버전>.md
 │  ├─ wpf-implicit-style-inside-control-template.md
 │  └─ wpf-ui-state-verification-without-backend.md
 ├─ Images

@@ -3,18 +3,26 @@
 
 Material Design 템플릿을 쓰지 않고 직접 그린다. 물결 효과와 그림자가 이 앱의 차분한 화면과 맞지 않고,
 눌렀을 때 반응은 면의 밝기 변화만으로 충분하다.
-키보드 포커스는 FocusVisualStyle로 그린다. 마우스로 누를 때는 테두리가 생기지 않고 Tab으로 옮겨 올 때만 보인다.
+키보드 포커스는 FocusVisualStyle로 그린다. 마우스로 누른 뒤에는 테두리가 보이지 않고 키보드로 조작할 때만 보인다.
+WPF는 창을 오간 뒤처럼 마우스로만 조작해도 테두리를 붙일 때가 있어, 보일지는 창에 붙인 FocusCue가 정한다.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:behaviors="clr-namespace:BrainWaves.Behaviors">
 
     <Style x:Key="FocusVisual">
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Rectangle Margin="-3" RadiusX="12" RadiusY="12"
+                    <Rectangle x:Name="Ring"
+                               Margin="-3" RadiusX="12" RadiusY="12"
                                Stroke="{StaticResource Brush.Text}" StrokeThickness="1.5"
                                SnapsToDevicePixels="True"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="behaviors:FocusCue.IsShown" Value="False">
+                            <Setter TargetName="Ring" Property="Visibility" Value="Hidden"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -25,9 +33,15 @@ Material Design 템플릿을 쓰지 않고 직접 그린다. 물결 효과와 �
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Rectangle Margin="-3" RadiusX="999" RadiusY="999"
+                    <Rectangle x:Name="Ring"
+                               Margin="-3" RadiusX="999" RadiusY="999"
                                Stroke="{StaticResource Brush.Text}" StrokeThickness="1.5"
                                SnapsToDevicePixels="True"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="behaviors:FocusCue.IsShown" Value="False">
+                            <Setter TargetName="Ring" Property="Visibility" Value="Hidden"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

@@ -16,6 +16,7 @@
         Width="450" MinWidth="450"
         SizeToContent="Height"
         behaviors:WindowAutoFit.IsEnabled="True"
+        behaviors:FocusCue.IsEnabled="True"
         behaviors:TitleBar.Background="{StaticResource Color.Background}"
         behaviors:TitleBar.Foreground="{StaticResource Color.TextMuted}"
         WindowStartupLocation="CenterScreen"

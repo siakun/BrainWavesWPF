@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,22 +9,20 @@ using BrainWaves.Model;
 using BrainWaves.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 
 namespace BrainWaves.ViewModel
 {
     public partial class PresetsViewModel : ObservableObject
     {
-        private readonly MainViewModel _mainViewModel;
-        private readonly AudioService _audioService;
+        // 주파수는 0.01 Hz 단위로 움직이므로 그 절반보다 가까우면 같은 소리로 본다.
+        private const double SameFrequencyTolerance = 0.005;
+
+        private readonly AudioService _audio = AudioService.Instance;
         private readonly SettingsStore _settings = SettingsStore.Instance;
-        private PresetDataViewModel? _currentlyPlayingPreset;
 
-        [ObservableProperty]
-        private ObservableCollection<PresetDataViewModel> presetList;
+        public IReadOnlyList<PresetDataViewModel> PresetList { get; }
 
-        [ObservableProperty]
-        private bool isPresetListEmpty;
+        public bool IsPresetListEmpty => PresetList.Count == 0;
 
         /// <summary>
         /// 화면에 보이는 목록. 대역이 낮은 순으로 묶고, 묶음 안은 비트가 낮은 순으로 늘어놓는다.
@@ -44,16 +43,7 @@ namespace BrainWaves.ViewModel
 
         public PresetsViewModel()
         {
-            // MainViewModel에서 프리셋 리스트 가져오기
-            _mainViewModel = new MainViewModel();
-            _audioService = AudioService.Instance;
-
-            // PresetData를 PresetDataViewModel로 변환
-            PresetList = new ObservableCollection<PresetDataViewModel>(
-                _mainViewModel.PresetList.Select(p => new PresetDataViewModel(p))
-            );
-
-            IsPresetListEmpty = PresetList.Count == 0;
+            PresetList = PresetCatalog.All.Select(preset => new PresetDataViewModel(preset)).ToList();
 
             PresetGroups = PresetList
                 .GroupBy(preset => preset.Band)
@@ -63,58 +53,45 @@ namespace BrainWaves.ViewModel
 
             ApplyFavorites();
 
-            // 재생 상태 변경 메시지 수신
-            WeakReferenceMessenger.Default.Register<PlaybackStateChangedMessage>(this, (r, m) =>
-            {
-                // 재생이 중지되면 현재 프리셋 초기화
-                if (!m.IsPlaying)
-                {
-                    if (_currentlyPlayingPreset != null)
-                    {
-                        _currentlyPlayingPreset.IsPlaying = false;
-                    }
-                    _currentlyPlayingPreset = null;
-                }
-            });
+            // 약한 구독으로 받아, 탭을 옮겨 이 ViewModel이 버려지면 함께 정리되게 한다.
+            PropertyChangedEventManager.AddHandler(_audio, OnAudioChanged, string.Empty);
+            ShowPlayingPreset();
         }
 
         [RelayCommand]
-        private void SelectPreset(PresetDataViewModel preset)
+        private void SelectPreset(PresetDataViewModel? preset)
         {
-            if (preset == null) return;
+            if (preset is null) return;
 
-            // 같은 프리셋을 다시 클릭하면 정지
-            if (_currentlyPlayingPreset == preset && _audioService.IsPlaying)
+            // 지금 들리는 프리셋을 다시 누르면 멈춘다. 다른 프리셋은 소리를 끊지 않고 주파수만 옮긴다.
+            if (preset.IsPlaying) _audio.Stop();
+            else _audio.Play(preset.LeftWave, preset.RightWave);
+        }
+
+        private void OnAudioChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(AudioService.IsPlaying)
+                or nameof(AudioService.LeftFrequency)
+                or nameof(AudioService.RightFrequency)
+                or null or "")
             {
-                _audioService.Stop();
-                preset.IsPlaying = false;
-                _currentlyPlayingPreset = null;
-            }
-            else
-            {
-                // 이전 프리셋의 재생 상태 업데이트
-                if (_currentlyPlayingPreset != null)
-                {
-                    _currentlyPlayingPreset.IsPlaying = false;
-                }
-
-                // 다른 프리셋 또는 정지 상태에서 클릭하면 재생
-                _audioService.Play(preset.LeftWave, preset.RightWave, 0.5, 0.5);
-                preset.IsPlaying = true;
-                _currentlyPlayingPreset = preset;
-
-                // Waves 페이지로 주파수 데이터 전송 (필요한 경우)
-                WeakReferenceMessenger.Default.Send(new PresetSelectedMessage(preset.LeftWave, preset.RightWave, 50.0, 50.0));
+                ShowPlayingPreset();
             }
         }
 
-        [RelayCommand]
-        private void NavigateToWaves(PresetDataViewModel preset)
+        /// <summary>
+        /// 재생 표시를 지금 들리는 소리에서 정한다. 재생 중이고 두 채널 주파수가 프리셋과 같으면 그 프리셋이 재생 중이다.
+        /// </summary>
+        // INTENT: 재생 중인 프리셋을 이 ViewModel에 기억하면, 탭을 옮겨 다시 만들어진 화면은 그것을 모르고
+        // Waves에서 주파수를 바꿔도 표시가 남는다. 소리에서 매번 다시 읽으면 어느 경로로 바뀌어도 표시가 맞는다.
+        private void ShowPlayingPreset()
         {
-            if (preset == null) return;
-
-            // Waves 페이지로 이동
-            _mainViewModel.NavigateFrameCommand.Execute("pack://application:,,,/View/Waves.xaml");
+            foreach (var preset in PresetList)
+            {
+                preset.IsPlaying = _audio.IsPlaying
+                    && Math.Abs(preset.LeftWave - _audio.LeftFrequency) < SameFrequencyTolerance
+                    && Math.Abs(preset.RightWave - _audio.RightFrequency) < SameFrequencyTolerance;
+            }
         }
 
         [RelayCommand]
@@ -173,23 +150,6 @@ namespace BrainWaves.ViewModel
 
         public PresetDataViewModel(PresetData preset) : base(preset.Id, preset.PresetName, preset.LeftWave, preset.RightWave)
         {
-        }
-    }
-
-    // 프리셋 선택 메시지
-    public class PresetSelectedMessage
-    {
-        public double LeftFrequency { get; }
-        public double RightFrequency { get; }
-        public double LeftGain { get; }
-        public double RightGain { get; }
-
-        public PresetSelectedMessage(double leftFrequency, double rightFrequency, double leftGain = 50.0, double rightGain = 50.0)
-        {
-            LeftFrequency = leftFrequency;
-            RightFrequency = rightFrequency;
-            LeftGain = leftGain;
-            RightGain = rightGain;
         }
     }
 }

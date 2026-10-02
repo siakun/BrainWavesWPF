@@ -23,10 +23,14 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 ## 네비게이션 아키텍처
 앱은 MainViewModel이 제어하는 프레임 기반 네비게이션을 사용합니다. 네비게이션 명령은 메인 윈도우의 네비게이션 바를 유지하면서 세 페이지 간을 전환합니다. 각 페이지는 중앙 프레임 요소에 로드됩니다.
 
+페이지와 그 ViewModel은 탭을 옮길 때마다 새로 만들어집니다. 그래서 화면을 오가도 남아야 하는 상태는 페이지 ViewModel에 두지 않고 앱 수명 동안 하나뿐인 객체에 둡니다. 소리 값은 `AudioService`, 업데이트 상태는 `UpdatesViewModel`, 저장하는 설정은 `SettingsStore`가 원본이고, 페이지 ViewModel은 그 객체를 노출해 화면이 바로 바인딩하게 합니다. 상태의 사본을 여러 곳에 두고 메시지로 맞추지 않습니다. 원인과 판단 근거는 `docs/wpf-page-state-lost-on-frame-navigation.md`에 있습니다.
+
+화면은 하단 탭으로만 고릅니다. Frame의 방문 기록은 남기지 않아, Alt+←, Backspace, 마우스의 뒤로 가기 버튼으로 탭과 다른 화면이 뜨지 않게 합니다.
+
 ### Project Features
 - 좌우 채널을 색으로 구분하는 어두운 테마 UI
 - 13가지 사전 설정된 뇌파 상태 (집중, 수면, 명상 등)
-- 실시간 주파수 조절 및 볼륨 컨트롤
+- 실시간 주파수 조절 및 볼륨 컨트롤. 전체 음량은 다음 실행에도 유지
 - 뇌파 대역을 그리스 문자(δ, θ, α, β, γ)로 표시하고 프리셋을 대역별로 묶음
 - 별표한 프리셋을 목록 맨 위 Favorites에 모아 표시
 - GitHub 릴리스를 통한 자동 업데이트와 버전 선택
@@ -36,7 +40,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 
 ## Project Library Dependencies
 버전은 `BrainWaves/BrainWaves/BrainWaves.csproj`가 원본입니다.
-- **CommunityToolkit.Mvvm** - 소스 생성기 기반 MVVM 프레임워크, ObservableObject, RelayCommand, Messaging 제공
+- **CommunityToolkit.Mvvm** - 소스 생성기 기반 MVVM 프레임워크. ObservableObject와 RelayCommand를 씁니다
 - **MaterialDesignThemes**, **MaterialDesignColors** - 아이콘(PackIcon)과 기본 컨트롤 스타일
 - **NAudio** - 좌우 채널 사인파의 실시간 재생
 - **Siakun.AutoUpdate** - GitHub 릴리스 조회, 업데이트 다운로드, 버전 전환. Velopack은 이 패키지의 의존성으로 들어오므로 앱에서 따로 참조하지 않습니다
@@ -47,14 +51,15 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `AppInfo.cs` - 저장소 주소, 개발 빌드 버전, 설정 폴더처럼 여러 곳이 함께 쓰는 고정 정보
 
 ### Services (`/Services/`)
-- `AudioService.cs` - 재생 상태를 가진 싱글톤 오디오 재생 관리자. 동시 재생 방지와 디바운싱 포함
+- `AudioService.cs` - 좌우 주파수, 채널 음량, 전체 음량, 재생 여부의 원본을 앱 전체에 하나 둡니다. 값을 바꾸면 재생 중인 소리에 바로 반영하고, 전체 음량은 설정 파일에 저장합니다. 주파수와 음량의 허용 범위도 여기서 정하고 화면의 슬라이더가 같은 값을 씁니다.
 - `SettingsStore.cs` - 사용자 설정을 `%AppData%\BrainWaves\settings.json`에 읽고 저장합니다. 설정 값의 원본은 여기 하나입니다.
 - `AppUpdates.cs` - Siakun.AutoUpdate의 `UpdateService`에 이 앱의 저장소 주소와 설정 저장을 연결합니다.
 
 ### Model (`/Model/`)
 - `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋. 즐겨찾기를 저장할 때는 표시 이름이 아니라 바꾸지 않는 `Id`를 씁니다.
+- `PresetCatalog.cs` - 앱에 들어 있는 프리셋 목록
 - `BrainwaveBand.cs` - 비트가 속하는 뇌파 대역의 경계, 기호, 설명. 대역 판정은 이 표 한 곳에서만 합니다.
-- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
+- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기, 전체 음량 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
 
 ### View (`/View/`)
 - `MainWindow.xaml` - 프레임, 업데이트 알림 막대, 하단 탭
@@ -64,9 +69,9 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `Settings.xaml` - 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
 
 ### ViewModel (`/ViewModel/`)
-- `MainViewModel.cs` - 네비게이션 처리 및 프리셋 컬렉션 관리 (집중, 수면, 명상 등 13개의 사전 구성 상태)
-- `WavesViewModel.cs` - 주파수 조절, 재생/정지, 볼륨 컨트롤 관리. WeakReferenceMessenger를 통한 프리셋 선택 수신
-- `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장. 즐겨찾기 상태는 `SettingsStore`에 저장된 값에서 매번 다시 계산합니다.
+- `MainViewModel.cs` - 하단 탭이 고른 페이지와 업데이트 알림 막대가 보는 상태
+- `WavesViewModel.cs` - 주파수를 0.01 Hz씩 옮기는 버튼과 재생 버튼. 소리 값은 들고 있지 않고 `Audio`(AudioService)를 노출합니다.
+- `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장. 재생 표시는 `AudioService`의 지금 소리에서, 즐겨찾기 상태는 `SettingsStore`에 저장된 값에서 매번 다시 계산합니다.
 - `SettingsViewModel.cs` - 설정 화면의 링크와 오픈소스 목록
 - `UpdatesViewModel.cs` - 업데이트 상태와 조작. 앱 전체에 하나만 두고 메인 창의 알림 막대와 설정 화면이 함께 봅니다.
 
@@ -92,7 +97,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 
 - `Program.Main`이 가장 먼저 `VelopackApp`을 실행합니다. 시작할 때 자동 적용은 끕니다.
 - `App.OnStartup`이 창을 그린 뒤 백그라운드 확인을 시작하고, 라이브러리의 재시작 요청을 받으면 정상 종료합니다.
-- `App.OnExit`이 소리를 멈춘 뒤 받아 둔 업데이트의 적용을 예약합니다.
+- `App.OnExit`이 소리를 멈추고 아직 저장하지 않은 전체 음량을 저장한 뒤 받아 둔 업데이트의 적용을 예약합니다.
 - 설정 화면과 알림 막대는 `UpdatesViewModel`의 상태만 봅니다. 설정 값은 `SettingsStore`가 원본이므로 화면이 값을 따로 들고 있다가 덮어쓰지 않게 합니다.
 
 릴리스에 올리는 파일 구성은 라이브러리가 기대하는 형태를 따라야 합니다. 절차와 이유는 `.claude/build_and_release.md`와 `.github/workflows/release.yml`의 주석에 있습니다.
@@ -114,14 +119,6 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 숫자와 제목은 `Font.Display`(Bahnschrift), 설명과 목록은 `Font.Body`(Segoe UI)를 씁니다.
 - 아이콘은 Material Design 아이콘(PackIcon)을 사용합니다.
 - 누르는 컨트롤의 `FocusVisualStyle`은 `ButtonStyles.xaml`의 `FocusVisual`이나 `FocusVisual.Pill`로 지정합니다. 이 두 스타일만 `FocusCue`를 따르므로, WPF 기본 점선 테두리를 쓰는 컨트롤은 마우스로 누른 뒤에도 테두리가 남을 수 있습니다.
-
-## 메시징 패턴
-
-앱은 CommunityToolkit.Mvvm의 WeakReferenceMessenger를 사용하여 컴포넌트 간 통신:
-
-- `PresetSelectedMessage`: 프리셋 선택 시 주파수 데이터 전달
-- `PlaybackStateChangedMessage`: 재생 상태 변경 알림
-- `AudioParametersChangedMessage`: 주파수/볼륨 변경 알림
 
 ## GitHub 리포지토리
 
@@ -169,6 +166,7 @@ BrainWavesWPF
 │  │  ├─ Model
 │  │  │  ├─ AppSettings.cs
 │  │  │  ├─ BrainwaveBand.cs
+│  │  │  ├─ PresetCatalog.cs
 │  │  │  └─ PresetData.cs
 │  │  ├─ PlaySound.cs
 │  │  ├─ Program.cs
@@ -214,6 +212,7 @@ BrainWavesWPF
 │  ├─ wpf-animation-skipped-while-ui-thread-busy.md
 │  ├─ wpf-focus-visual-after-mouse-click.md
 │  ├─ wpf-implicit-style-inside-control-template.md
+│  ├─ wpf-page-state-lost-on-frame-navigation.md
 │  ├─ wpf-ui-state-verification-without-backend.md
 │  └─ wpf-window-flicker-from-sizetocontent-measure.md
 ├─ Images

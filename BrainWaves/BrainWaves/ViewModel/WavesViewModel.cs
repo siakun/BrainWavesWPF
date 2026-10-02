@@ -1,160 +1,41 @@
-﻿using System;
-using BrainWaves.Model;
+using System;
 using BrainWaves.Services;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 
 namespace BrainWaves.ViewModel
 {
-    public partial class WavesViewModel : ObservableObject
+    /// <summary>
+    /// Waves 화면의 조작. 주파수를 0.01 Hz씩 옮기는 버튼과 재생 버튼을 제공한다.
+    /// 소리 값은 AudioService가 들고 있고, 화면은 Audio에 바로 바인딩한다.
+    /// </summary>
+    // INTENT: 이 ViewModel은 탭을 옮길 때마다 새로 만들어지므로 값을 들고 있지 않는다. 값을 여기 두면 재생하지 않는 동안
+    // 바꾼 주파수와 음량이 화면을 떠나는 순간 기본값으로 돌아간다.
+    public sealed partial class WavesViewModel
     {
-        private readonly AudioService _audioService;
+        private const double FrequencyStep = 0.01;
 
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(Resonance))]
-        [NotifyPropertyChangedFor(nameof(Band))]
-        private double leftFrequency = 75.0;
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(Resonance))]
-        [NotifyPropertyChangedFor(nameof(Band))]
-        private double rightFrequency = 73.0;
-
-        [ObservableProperty]
-        private double leftGain = 50.0;
-
-        [ObservableProperty]
-        private double rightGain = 50.0;
-
-        [ObservableProperty]
-        private double masterVolume = 50.0;
-
-        [ObservableProperty]
-        private string playButtonText = "Play";
-
-        [ObservableProperty]
-        private string playButtonIcon = "Play";
-
-        [ObservableProperty]
-        private bool isPlaying;
-
-        public double Resonance => Math.Abs(LeftFrequency - RightFrequency);
-
-        public BrainwaveBand Band => BrainwaveBand.FromBeat(Resonance);
-
-        public WavesViewModel()
-        {
-            _audioService = AudioService.Instance;
-
-            // 프리셋 선택 메시지 수신
-            WeakReferenceMessenger.Default.Register<PresetSelectedMessage>(this, (r, m) =>
-            {
-                LeftFrequency = m.LeftFrequency;
-                RightFrequency = m.RightFrequency;
-                LeftGain = m.LeftGain;
-                RightGain = m.RightGain;
-
-                // 자동으로 재생 시작
-                PlaySound();
-            });
-
-            // 재생 상태 변경 메시지 수신
-            WeakReferenceMessenger.Default.Register<PlaybackStateChangedMessage>(this, (r, m) =>
-            {
-                UpdatePlayButtonState(m.IsPlaying);
-            });
-
-            // 오디오 파라미터 변경 메시지 수신  
-            WeakReferenceMessenger.Default.Register<AudioParametersChangedMessage>(this, (r, m) =>
-            {
-                // 다른 곳에서 파라미터가 변경되면 UI 업데이트
-                LeftFrequency = m.LeftFrequency;
-                RightFrequency = m.RightFrequency;
-                LeftGain = m.LeftGain;
-                RightGain = m.RightGain;
-                MasterVolume = m.MasterVolume;
-            });
-
-            // 초기 상태 설정
-            UpdatePlayButtonState(_audioService.IsPlaying);
-
-            // 현재 재생 중인 값으로 초기화
-            if (_audioService.IsPlaying)
-            {
-                LeftFrequency = _audioService.CurrentLeftFrequency;
-                RightFrequency = _audioService.CurrentRightFrequency;
-                LeftGain = _audioService.CurrentLeftGain;
-                RightGain = _audioService.CurrentRightGain;
-                MasterVolume = _audioService.CurrentMasterVolume;
-            }
-        }
-
-        partial void OnMasterVolumeChanged(double value)
-        {
-            if (_audioService.IsPlaying)
-            {
-                // 마스터 볼륨 변경 시 즉시 적용
-                _audioService.SetMasterVolume(value / 100.0);
-            }
-        }
+        public AudioService Audio { get; } = AudioService.Instance;
 
         [RelayCommand]
-        private void IncreaseLeftFrequency()
-        {
-            if (LeftFrequency < 1000)
-                LeftFrequency = Math.Round(LeftFrequency + 0.01, 2);
-        }
+        private void IncreaseLeftFrequency() => Audio.LeftFrequency = Step(Audio.LeftFrequency, FrequencyStep);
 
         [RelayCommand]
-        private void DecreaseLeftFrequency()
-        {
-            if (LeftFrequency > 0.01)
-                LeftFrequency = Math.Round(LeftFrequency - 0.01, 2);
-        }
+        private void DecreaseLeftFrequency() => Audio.LeftFrequency = Step(Audio.LeftFrequency, -FrequencyStep);
 
         [RelayCommand]
-        private void IncreaseRightFrequency()
-        {
-            if (RightFrequency < 1000)
-                RightFrequency = Math.Round(RightFrequency + 0.01, 2);
-        }
+        private void IncreaseRightFrequency() => Audio.RightFrequency = Step(Audio.RightFrequency, FrequencyStep);
 
         [RelayCommand]
-        private void DecreaseRightFrequency()
-        {
-            if (RightFrequency > 0.01)
-                RightFrequency = Math.Round(RightFrequency - 0.01, 2);
-        }
+        private void DecreaseRightFrequency() => Audio.RightFrequency = Step(Audio.RightFrequency, -FrequencyStep);
 
         [RelayCommand]
         private void TogglePlay()
         {
-            if (_audioService.IsPlaying)
-            {
-                StopSound();
-            }
-            else
-            {
-                PlaySound();
-            }
+            if (Audio.IsPlaying) Audio.Stop();
+            else Audio.Play();
         }
 
-        private void PlaySound()
-        {
-            _audioService.Play(LeftFrequency, RightFrequency, LeftGain / 100.0, RightGain / 100.0, MasterVolume / 100.0);
-        }
-
-        private void StopSound()
-        {
-            _audioService.Stop();
-        }
-
-        private void UpdatePlayButtonState(bool playing)
-        {
-            IsPlaying = playing;
-            PlayButtonText = playing ? "Stop" : "Play";
-            PlayButtonIcon = playing ? "Stop" : "Play";
-        }
+        // 0.01을 더하고 빼는 사이 생기는 부동소수점 오차가 쌓여 화면의 값과 소리의 값이 어긋나지 않게 반올림한다.
+        private static double Step(double value, double delta) => Math.Round(value + delta, 2);
     }
 }

@@ -8,6 +8,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:services="clr-namespace:BrainWaves.Services"
              mc:Ignorable="d"
              d:DesignWidth="200"
              x:Name="Root">
@@ -31,7 +32,10 @@
                            Text="Hz"/>
             </StackPanel>
 
-            <!-- 슬라이더는 10 Hz 단위로 크게 옮기고, 양쪽 버튼은 0.01 Hz씩 다듬는다. 버튼은 누르고 있으면 계속 옮긴다. -->
+            <!--
+            슬라이더는 10 Hz 단위로 크게 옮기고, 양쪽 버튼은 0.01 Hz씩 다듬는다. 버튼은 누르고 있으면 계속 옮긴다.
+            범위는 AudioService가 값을 받아들이는 범위를 그대로 쓴다. 따로 적으면 버튼으로 옮긴 값이 슬라이더 끝을 넘어 손잡이와 숫자가 어긋난다.
+            -->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -48,7 +52,8 @@
                 </RepeatButton>
                 <Slider Grid.Column="1"
                         Margin="6,0"
-                        Minimum="20" Maximum="500"
+                        Minimum="{x:Static services:AudioService.MinFrequency}"
+                        Maximum="{x:Static services:AudioService.MaxFrequency}"
                         TickFrequency="10" IsSnapToTickEnabled="True"
                         Foreground="{Binding ChannelBrush, ElementName=Root}"
                         Value="{Binding Frequency, ElementName=Root, Mode=TwoWay}"
@@ -76,7 +81,7 @@
                                          VerticalAlignment="Center"
                                          Foreground="{StaticResource Brush.TextFaint}"/>
                 <Slider Grid.Column="1"
-                        Maximum="100"
+                        Maximum="{x:Static services:AudioService.MaxLevel}"
                         Foreground="{StaticResource Brush.TextMuted}"
                         Value="{Binding Gain, ElementName=Root, Mode=TwoWay}"
                         AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='{}{0} volume'}"/>

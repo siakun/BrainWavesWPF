@@ -11,6 +11,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:vm="clr-namespace:BrainWaves.ViewModel"
       xmlns:views="clr-namespace:BrainWaves.View"
+      xmlns:services="clr-namespace:BrainWaves.Services"
       mc:Ignorable="d"
       d:DesignHeight="650" d:DesignWidth="450"
       Title="Waves">
@@ -69,7 +70,7 @@
             <Style.Triggers>
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding IsPlaying}" Value="True"/>
+                        <Condition Binding="{Binding Audio.IsPlaying}" Value="True"/>
                         <Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True"/>
                     </MultiDataTrigger.Conditions>
                     <MultiDataTrigger.EnterActions>
@@ -131,7 +132,7 @@
             <Style.Triggers>
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding IsPlaying}" Value="True"/>
+                        <Condition Binding="{Binding Audio.IsPlaying}" Value="True"/>
                         <Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True"/>
                     </MultiDataTrigger.Conditions>
                     <MultiDataTrigger.EnterActions>
@@ -162,7 +163,7 @@
         <!-- 재생 버튼은 멈춰 있을 때 주 동작으로 채우고, 재생 중에는 테두리만 남겨 지금 상태가 버튼에서도 드러나게 한다. -->
         <Style x:Key="PlayToggleButton" TargetType="Button" BasedOn="{StaticResource Button.PrimaryRound}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                <DataTrigger Binding="{Binding Audio.IsPlaying}" Value="True">
                     <Setter Property="Background" Value="{StaticResource Brush.Surface}"/>
                     <Setter Property="BorderBrush" Value="{StaticResource Brush.TextMuted}"/>
                     <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
@@ -224,7 +225,7 @@
                             <StackPanel Orientation="Horizontal" Margin="-3,2,0,0">
                                 <TextBlock Style="{StaticResource Text.Readout}"
                                            FontSize="68"
-                                           Text="{Binding Resonance, StringFormat='{}{0:F2}'}"/>
+                                           Text="{Binding Audio.Beat, StringFormat='{}{0:F2}'}"/>
                                 <TextBlock Style="{StaticResource Text.Unit}"
                                            FontSize="24"
                                            VerticalAlignment="Bottom"
@@ -237,16 +238,16 @@
                                            FontSize="18"
                                            FontWeight="Normal"
                                            VerticalAlignment="Center"
-                                           Text="{Binding Band.Symbol}"/>
+                                           Text="{Binding Audio.Band.Symbol}"/>
                                 <TextBlock Style="{StaticResource Text.Title}"
                                            Margin="10,0,0,0"
                                            VerticalAlignment="Center"
-                                           Text="{Binding Band.Name}"/>
+                                           Text="{Binding Audio.Band.Name}"/>
                                 <TextBlock Style="{StaticResource Text.Caption}"
                                            FontSize="13"
                                            Margin="10,0,0,0"
                                            VerticalAlignment="Center"
-                                           Text="{Binding Band.Description}"/>
+                                           Text="{Binding Audio.Band.Description}"/>
                             </StackPanel>
                         </StackPanel>
 
@@ -255,15 +256,17 @@
                                 VerticalAlignment="Center"
                                 Margin="16,8,0,0"
                                 Command="{Binding TogglePlayCommand}"
-                                ToolTip="{Binding PlayButtonText}"
-                                AutomationProperties.Name="{Binding PlayButtonText}">
-                            <materialDesign:PackIcon Kind="{Binding PlayButtonIcon}" Width="28" Height="28">
+                                ToolTip="{Binding Audio.IsPlaying, Converter={StaticResource BoolToPlayStopTextConverter}}"
+                                AutomationProperties.Name="{Binding Audio.IsPlaying, Converter={StaticResource BoolToPlayStopTextConverter}}">
+                            <materialDesign:PackIcon Width="28" Height="28">
                                 <materialDesign:PackIcon.Style>
                                     <Style TargetType="materialDesign:PackIcon">
                                         <!-- 재생 삼각형은 무게중심이 왼쪽에 있어 정가운데에 두면 왼쪽으로 쏠려 보인다. -->
+                                        <Setter Property="Kind" Value="Play"/>
                                         <Setter Property="Margin" Value="3,0,0,0"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                            <DataTrigger Binding="{Binding Audio.IsPlaying}" Value="True">
+                                                <Setter Property="Kind" Value="Stop"/>
                                                 <Setter Property="Margin" Value="0"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -295,7 +298,7 @@
                                        HorizontalAlignment="Right"
                                        FontSize="14"
                                        FontWeight="Normal"
-                                       Text="{Binding MasterVolume, StringFormat='{}{0:F0}%'}"/>
+                                       Text="{Binding Audio.MasterVolume, StringFormat='{}{0:F0}%'}"/>
 
                             <materialDesign:PackIcon Grid.Row="1" Grid.Column="0"
                                                      Kind="VolumeHigh"
@@ -304,8 +307,8 @@
                                                      VerticalAlignment="Center"
                                                      Foreground="{StaticResource Brush.TextMuted}"/>
                             <Slider Grid.Row="1" Grid.Column="1"
-                                    Maximum="100"
-                                    Value="{Binding MasterVolume, Mode=TwoWay}"
+                                    Maximum="{x:Static services:AudioService.MaxLevel}"
+                                    Value="{Binding Audio.MasterVolume, Mode=TwoWay}"
                                     AutomationProperties.Name="Master volume"/>
                         </Grid>
                     </Border>
@@ -321,16 +324,16 @@
                         <views:ChannelCard Grid.Column="0"
                                            Title="LEFT"
                                            ChannelBrush="{StaticResource Brush.ChannelLeft}"
-                                           Frequency="{Binding LeftFrequency}"
-                                           Gain="{Binding LeftGain}"
+                                           Frequency="{Binding Audio.LeftFrequency}"
+                                           Gain="{Binding Audio.LeftGain}"
                                            DecreaseCommand="{Binding DecreaseLeftFrequencyCommand}"
                                            IncreaseCommand="{Binding IncreaseLeftFrequencyCommand}"/>
 
                         <views:ChannelCard Grid.Column="2"
                                            Title="RIGHT"
                                            ChannelBrush="{StaticResource Brush.ChannelRight}"
-                                           Frequency="{Binding RightFrequency}"
-                                           Gain="{Binding RightGain}"
+                                           Frequency="{Binding Audio.RightFrequency}"
+                                           Gain="{Binding Audio.RightGain}"
                                            DecreaseCommand="{Binding DecreaseRightFrequencyCommand}"
                                            IncreaseCommand="{Binding IncreaseRightFrequencyCommand}"/>
                     </Grid>

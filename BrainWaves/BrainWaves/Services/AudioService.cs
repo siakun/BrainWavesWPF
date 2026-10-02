@@ -1,164 +1,154 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using BrainWaves.Model;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 
-/**
-싱글톤 패턴으로 구현된 중앙 집중식 오디오 재생 관리자. 동시 재생 방지 및 디바운싱 로직 포함
-*/
 namespace BrainWaves.Services
 {
-    public class AudioService : ObservableObject
+    /// <summary>
+    /// 좌우 주파수, 채널 음량, 전체 음량과 재생 여부를 앱 전체에 하나만 두고 소리에 반영한다.
+    /// 화면은 이 인스턴스에 바인딩한다. 값을 바꾸면 재생 중인 소리에 바로 적용되고, 멈춰 있으면 다음 재생에 쓰인다.
+    /// </summary>
+    // INTENT: 페이지와 그 ViewModel은 탭을 옮길 때마다 새로 만들어진다. 소리 값을 페이지마다 두고 메시지로 맞추면
+    // 재생하지 않는 동안 바꾼 값이 페이지와 함께 사라지고, 사본마다 값이 달라 어느 값으로 재생할지가 경우에 따라 바뀐다.
+    // 그래서 값의 원본을 여기 하나로 두고 화면은 읽고 쓰기만 한다. 업데이트 상태를 UpdatesViewModel 하나에 두는 것과 같은 원칙이다.
+    // UI 스레드에서만 쓴다. 소리를 만드는 스레드와는 PlaySound가 잠금으로 값을 주고받는다.
+    public sealed class AudioService : ObservableObject
     {
-        private static AudioService? _instance;
-        private PlaySound? _playSound;
-        private bool _isPlaying;
-        private double _currentLeftFrequency;
-        private double _currentRightFrequency;
-        private double _currentLeftGain;
-        private double _currentRightGain;
-        private double _currentMasterVolume = 0.5;
-        private CancellationTokenSource? _playbackCts;
-        private readonly object _playbackLock = new object();
+        /// <summary>채널 주파수의 하한(Hz). 슬라이더와 0.01 Hz 버튼이 같은 범위를 쓴다.</summary>
+        public const double MinFrequency = 20;
 
-        public static AudioService Instance => _instance ??= new AudioService();
+        /// <summary>채널 주파수의 상한(Hz).</summary>
+        public const double MaxFrequency = 500;
+
+        /// <summary>채널 음량과 전체 음량의 최댓값. 음량은 0에서 이 값 사이의 백분율이다.</summary>
+        public const double MaxLevel = 100;
+
+        public static AudioService Instance { get; } = new();
+
+        private readonly PlaySound _sound = new();
+
+        private double _leftFrequency = 75;
+        private double _rightFrequency = 73;
+        private double _leftGain = 50;
+        private double _rightGain = 50;
+        private double _masterVolume = 50;
+        private bool _isPlaying;
+
+        private AudioService()
+        {
+            _sound.SetFrequencies(_leftFrequency, _rightFrequency);
+            ApplyLevels();
+        }
+
+        public double LeftFrequency
+        {
+            get => _leftFrequency;
+            set
+            {
+                if (SetProperty(ref _leftFrequency, ClampFrequency(value))) OnFrequencyChanged();
+            }
+        }
+
+        public double RightFrequency
+        {
+            get => _rightFrequency;
+            set
+            {
+                if (SetProperty(ref _rightFrequency, ClampFrequency(value))) OnFrequencyChanged();
+            }
+        }
+
+        /// <summary>왼쪽 채널 음량(백분율).</summary>
+        public double LeftGain
+        {
+            get => _leftGain;
+            set
+            {
+                if (SetProperty(ref _leftGain, ClampLevel(value))) ApplyLevels();
+            }
+        }
+
+        /// <summary>오른쪽 채널 음량(백분율).</summary>
+        public double RightGain
+        {
+            get => _rightGain;
+            set
+            {
+                if (SetProperty(ref _rightGain, ClampLevel(value))) ApplyLevels();
+            }
+        }
+
+        /// <summary>두 채널에 함께 곱하는 전체 음량(백분율).</summary>
+        public double MasterVolume
+        {
+            get => _masterVolume;
+            set
+            {
+                if (SetProperty(ref _masterVolume, ClampLevel(value))) ApplyLevels();
+            }
+        }
+
+        /// <summary>두 채널의 주파수 차이. 들리는 바이노럴 비트의 주파수다.</summary>
+        public double Beat => Math.Abs(_leftFrequency - _rightFrequency);
+
+        public BrainwaveBand Band => BrainwaveBand.FromBeat(Beat);
 
         public bool IsPlaying
         {
             get => _isPlaying;
-            private set
+            private set => SetProperty(ref _isPlaying, value);
+        }
+
+        public void Play()
+        {
+            if (IsPlaying) return;
+
+            try
             {
-                if (SetProperty(ref _isPlaying, value))
-                {
-                    // 재생 상태가 변경되면 메시지 전송
-                    WeakReferenceMessenger.Default.Send(new PlaybackStateChangedMessage(value));
-                }
+                _sound.Play();
+                IsPlaying = true;
+            }
+            catch (Exception ex)
+            {
+                // 출력 장치가 없거나 쓸 수 없으면 재생하지 않은 상태로 남긴다.
+                Debug.WriteLine($"[AudioService] Failed to start playback: {ex.Message}");
+                _sound.Stop();
             }
         }
 
-        public double CurrentLeftFrequency => _currentLeftFrequency;
-        public double CurrentRightFrequency => _currentRightFrequency;
-        public double CurrentLeftGain => _currentLeftGain;
-        public double CurrentRightGain => _currentRightGain;
-        public double CurrentMasterVolume => _currentMasterVolume * 100;
-
-        private AudioService() { }
-
-        public async void Play(double leftFrequency, double rightFrequency, double leftGain = 0.5, double rightGain = 0.5, double masterVolume = 0.5)
+        /// <summary>
+        /// 두 채널의 주파수를 바꾸고 재생한다. 프리셋을 고를 때 쓰며, 채널 음량과 전체 음량은 그대로 둔다.
+        /// 이미 재생 중이면 소리를 끊지 않고 주파수만 옮긴다.
+        /// </summary>
+        public void Play(double leftFrequency, double rightFrequency)
         {
-            // 이전 재생 취소
-            _playbackCts?.Cancel();
-            _playbackCts = new CancellationTokenSource();
-            var cts = _playbackCts;
-
-            // 짧은 지연을 주어 빠른 클릭 시 마지막 클릭만 처리되도록 함
-            try
-            {
-                await Task.Delay(50, cts.Token);
-            }
-            catch (TaskCanceledException)
-            {
-                return;
-            }
-
-            lock (_playbackLock)
-            {
-                if (cts.IsCancellationRequested) return;
-
-                try
-                {
-                    // 기존 사운드 정지
-                    _playSound?.Stop();
-                    _playSound?.Dispose();
-                    _playSound = null;
-
-                    // 새 사운드 생성 및 재생
-                    _playSound = new PlaySound();
-                    _playSound.SetFrequencies(leftFrequency, rightFrequency);
-                    _playSound.SetGains(leftGain, rightGain);
-                    _playSound.SetMasterVolume(masterVolume);
-                    _playSound.Play();
-
-                    _currentLeftFrequency = leftFrequency;
-                    _currentRightFrequency = rightFrequency;
-                    _currentLeftGain = leftGain * 100; // 0.0-1.0을 0-100으로 변환
-                    _currentRightGain = rightGain * 100;
-                    _currentMasterVolume = masterVolume;
-                    IsPlaying = true;
-
-                    // 주파수 및 게인 변경 메시지 전송
-                    WeakReferenceMessenger.Default.Send(new AudioParametersChangedMessage(leftFrequency, rightFrequency, _currentLeftGain, _currentRightGain, _currentMasterVolume * 100));
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error playing sound: {ex.Message}");
-                    IsPlaying = false;
-                }
-            }
+            LeftFrequency = leftFrequency;
+            RightFrequency = rightFrequency;
+            Play();
         }
 
         public void Stop()
         {
-            _playbackCts?.Cancel();
-
-            lock (_playbackLock)
-            {
-                _playSound?.Stop();
-                _playSound?.Dispose();
-                _playSound = null;
-                IsPlaying = false;
-            }
+            _sound.Stop();
+            IsPlaying = false;
         }
 
-        public void SetMasterVolume(double masterVolume)
+        private void OnFrequencyChanged()
         {
-            lock (_playbackLock)
-            {
-                _currentMasterVolume = masterVolume;
-                _playSound?.SetMasterVolume(masterVolume);
-
-                if (IsPlaying)
-                {
-                    // 마스터 볼륨 변경 메시지 전송
-                    WeakReferenceMessenger.Default.Send(new AudioParametersChangedMessage(
-                        _currentLeftFrequency,
-                        _currentRightFrequency,
-                        _currentLeftGain,
-                        _currentRightGain,
-                        _currentMasterVolume * 100));
-                }
-            }
+            _sound.SetFrequencies(_leftFrequency, _rightFrequency);
+            OnPropertyChanged(nameof(Beat));
+            OnPropertyChanged(nameof(Band));
         }
-    }
 
-    // 재생 상태 변경 메시지
-    public class PlaybackStateChangedMessage
-    {
-        public bool IsPlaying { get; }
-
-        public PlaybackStateChangedMessage(bool isPlaying)
+        private void ApplyLevels()
         {
-            IsPlaying = isPlaying;
+            _sound.SetGains(_leftGain / MaxLevel, _rightGain / MaxLevel);
+            _sound.SetMasterVolume(_masterVolume / MaxLevel);
         }
-    }
 
-    // 오디오 파라미터 변경 메시지
-    public class AudioParametersChangedMessage
-    {
-        public double LeftFrequency { get; }
-        public double RightFrequency { get; }
-        public double LeftGain { get; }
-        public double RightGain { get; }
-        public double MasterVolume { get; }
+        private static double ClampFrequency(double value) => Math.Clamp(value, MinFrequency, MaxFrequency);
 
-        public AudioParametersChangedMessage(double leftFrequency, double rightFrequency, double leftGain, double rightGain, double masterVolume)
-        {
-            LeftFrequency = leftFrequency;
-            RightFrequency = rightFrequency;
-            LeftGain = leftGain;
-            RightGain = rightGain;
-            MasterVolume = masterVolume;
-        }
+        private static double ClampLevel(double value) => Math.Clamp(value, 0, MaxLevel);
     }
 }

@@ -28,6 +28,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 13가지 사전 설정된 뇌파 상태 (집중, 수면, 명상 등)
 - 실시간 주파수 조절 및 볼륨 컨트롤
 - 뇌파 대역을 그리스 문자(δ, θ, α, β, γ)로 표시하고 프리셋을 대역별로 묶음
+- 별표한 프리셋을 목록 맨 위 Favorites에 모아 표시
 - GitHub 릴리스를 통한 자동 업데이트와 버전 선택
 
 ## Project Architecture
@@ -51,21 +52,21 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `AppUpdates.cs` - Siakun.AutoUpdate의 `UpdateService`에 이 앱의 저장소 주소와 설정 저장을 연결합니다.
 
 ### Model (`/Model/`)
-- `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋
+- `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋. 즐겨찾기를 저장할 때는 표시 이름이 아니라 바꾸지 않는 `Id`를 씁니다.
 - `BrainwaveBand.cs` - 비트가 속하는 뇌파 대역의 경계, 기호, 설명. 대역 판정은 이 표 한 곳에서만 합니다.
-- `AppSettings.cs` - 자동 업데이트, 베타 수신 같은 사용자 설정
+- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
 
 ### View (`/View/`)
 - `MainWindow.xaml` - 프레임, 업데이트 알림 막대, 하단 탭
 - `Waves.xaml` - 지금 들리는 비트와 재생 버튼, 전체 음량, 좌우 채널 조절
 - `ChannelCard.xaml` - 한 채널의 주파수와 음량 카드. Waves가 좌우에 하나씩 놓습니다.
-- `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록
+- `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록. 별표한 프리셋은 맨 위 Favorites에 한 번 더 보입니다.
 - `Settings.xaml` - 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
 
 ### ViewModel (`/ViewModel/`)
 - `MainViewModel.cs` - 네비게이션 처리 및 프리셋 컬렉션 관리 (집중, 수면, 명상 등 13개의 사전 구성 상태)
 - `WavesViewModel.cs` - 주파수 조절, 재생/정지, 볼륨 컨트롤 관리. WeakReferenceMessenger를 통한 프리셋 선택 수신
-- `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장
+- `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장. 즐겨찾기 상태는 `SettingsStore`에 저장된 값에서 매번 다시 계산합니다.
 - `SettingsViewModel.cs` - 설정 화면의 링크와 오픈소스 목록
 - `UpdatesViewModel.cs` - 업데이트 상태와 조작. 앱 전체에 하나만 두고 메인 창의 알림 막대와 설정 화면이 함께 봅니다.
 

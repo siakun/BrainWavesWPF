@@ -2,7 +2,9 @@
 프리셋 목록 페이지.
 프리셋을 뇌파 대역별로 묶어 대역이 낮은 순으로 놓는다. 대역 이름과 범위를 묶음 머리에 적어 두면
 사용자가 원하는 상태(수면, 명상, 집중)의 자리를 목록을 다 읽지 않고 찾는다.
-한 줄 전체가 재생 버튼이다. 오른쪽 원형 아이콘은 지금 상태를 보여 줄 뿐 따로 눌리지 않는다.
+즐겨찾기한 프리셋은 대역 묶음 위의 Favorites 묶음에 한 번 더 모아 보인다.
+한 줄 전체가 재생 버튼이다. 오른쪽 원형 아이콘은 지금 상태를 보여 줄 뿐 따로 눌리지 않고,
+왼쪽 별은 그 줄 안에 둔 별도 버튼으로 즐겨찾기를 켜고 끈다.
 -->
 <Page x:Class="BrainWaves.View.Presets"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -31,6 +33,18 @@
     </Page.RenderTransform>
 
     <Page.Resources>
+        <!-- 별 버튼의 설명과 화면 낭독기 이름은 지금 상태에서 누르면 일어날 일을 말한다. -->
+        <Style x:Key="FavoriteButton" TargetType="Button" BasedOn="{StaticResource Button.Icon}">
+            <Setter Property="ToolTip" Value="Add to favorites"/>
+            <Setter Property="AutomationProperties.Name" Value="{Binding PresetName, StringFormat='Add {0} to favorites'}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                    <Setter Property="ToolTip" Value="Remove from favorites"/>
+                    <Setter Property="AutomationProperties.Name" Value="{Binding PresetName, StringFormat='Remove {0} from favorites'}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <DataTemplate x:Key="PresetRowTemplate" DataType="{x:Type vm:PresetDataViewModel}">
             <Button Style="{StaticResource Button.Row}"
                     Margin="0,1"
@@ -45,10 +59,14 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- 재생 중인 줄 표시. 좌우 채널이 함께 울린다는 뜻으로 두 채널 색을 잇는다. 자리는 늘 차지해 글자가 밀리지 않게 한다. -->
+                    <!--
+                    재생 중인 줄 표시. 좌우 채널이 함께 울린다는 뜻으로 두 채널 색을 잇는다.
+                    줄의 왼쪽 가장자리(안쪽 여백 자리)에 겹쳐 그려, 재생하지 않는 줄에서도 별과 이름의 간격을 밀어내지 않는다.
+                    -->
                     <Border Grid.Column="0"
                             Width="3"
-                            Margin="0,2,11,2"
+                            Margin="-12,2,0,2"
+                            HorizontalAlignment="Left"
                             CornerRadius="1.5"
                             Background="{StaticResource Brush.Stereo}">
                         <Border.Style>
@@ -62,6 +80,33 @@
                             </Style>
                         </Border.Style>
                     </Border>
+
+                    <!--
+                    즐겨찾기 별. 줄 버튼 안에 둔 별도 버튼이며, 안쪽 버튼이 마우스 누름을 먼저 처리하므로 별을 눌러도 재생되지 않는다.
+                    켜진 별만 가장 밝은 글자 색으로 칠한다. 채도가 있는 색은 좌우 채널을 뜻하므로 쓰지 않는다.
+                    별 아이콘이 줄 가장자리와 이름 사이 가운데에 오도록 둔다. 누르는 영역(32px)이 아이콘(18px)보다 넓어
+                    버튼을 그대로 두면 왼쪽만 비어 보이므로, 버튼을 안쪽 여백 쪽으로 8px 당기고 이름과는 8px 띄운다.
+                    -->
+                    <Button Grid.Column="0"
+                            Style="{StaticResource FavoriteButton}"
+                            Margin="-8,0,8,0"
+                            VerticalAlignment="Center"
+                            Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                            CommandParameter="{Binding}">
+                        <materialDesign:PackIcon Width="18" Height="18">
+                            <materialDesign:PackIcon.Style>
+                                <Style TargetType="materialDesign:PackIcon">
+                                    <Setter Property="Kind" Value="StarOutline"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                            <Setter Property="Kind" Value="Star"/>
+                                            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </materialDesign:PackIcon.Style>
+                        </materialDesign:PackIcon>
+                    </Button>
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Style="{StaticResource Text.Title}" Text="{Binding PresetName}"/>
@@ -137,7 +182,28 @@
             <StackPanel Margin="16,20,16,20">
                 <TextBlock Style="{StaticResource Text.PageTitle}" Margin="4,0,0,0" Text="Presets"/>
                 <TextBlock Style="{StaticResource Text.Caption}" Margin="4,4,0,0"
-                           Text="Click a preset to play it. Click it again to stop."/>
+                           Text="Click a preset to play it. Click it again to stop. Star the ones you use most to keep them at the top."/>
+
+                <!-- 즐겨찾기. 하나도 없으면 묶음째 감춘다. 머리 모양은 아래 대역 묶음과 맞춘다. -->
+                <StackPanel Margin="0,20,0,0"
+                            Visibility="{Binding HasFavorites, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal" Margin="4,0,4,8">
+                        <materialDesign:PackIcon Kind="Star"
+                                                 Width="18" Height="18"
+                                                 VerticalAlignment="Center"
+                                                 Foreground="{StaticResource Brush.Text}"/>
+                        <TextBlock Style="{StaticResource Text.Title}"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Text="Favorites"/>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Card}" Padding="4">
+                        <ItemsControl ItemsSource="{Binding Favorites}"
+                                      ItemTemplate="{StaticResource PresetRowTemplate}"
+                                      Focusable="False"/>
+                    </Border>
+                </StackPanel>
 
                 <ItemsControl ItemsSource="{Binding PresetGroups}" Focusable="False">
                     <ItemsControl.ItemTemplate>
@@ -145,9 +211,12 @@
                             <StackPanel Margin="0,20,0,0">
                                 <Grid Margin="4,0,4,8">
                                     <StackPanel Orientation="Horizontal">
+                                        <!-- 기호 폭을 Favorites 머리의 별 아이콘과 같게 두어 묶음 제목의 시작선을 맞춘다. -->
                                         <TextBlock Style="{StaticResource Text.Readout}"
                                                    FontSize="18"
                                                    FontWeight="Normal"
+                                                   MinWidth="18"
+                                                   TextAlignment="Center"
                                                    VerticalAlignment="Center"
                                                    Text="{Binding Band.Symbol}"/>
                                         <TextBlock Style="{StaticResource Text.Title}"

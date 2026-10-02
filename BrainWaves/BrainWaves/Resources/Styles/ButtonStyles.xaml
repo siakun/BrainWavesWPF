@@ -150,6 +150,37 @@ Material Design 템플릿을 쓰지 않고 직접 그린다. 물결 효과와 �
     </Style>
 
     <!--
+    목록 줄 안에 놓는 테두리 없는 작은 아이콘 버튼. 줄 전체가 눌리는 항목(Button.Row) 안에 두므로,
+    줄의 강조 면과 구분되도록 자기 강조는 한 단계 더 밝은 면으로 그린다. 아이콘 색은 Foreground로 물려준다.
+    -->
+    <Style x:Key="Button.Icon" TargetType="Button">
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextFaint}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="16">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="{StaticResource Brush.Line}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
     카드 안의 한 줄 전체가 눌리는 목록 항목. 카드의 둥근 모서리 밖으로 강조가 삐져나오지 않도록
     강조 면을 카드 안쪽으로 들여 둥글게 그린다. 들여 쓰는 폭은 항목을 놓는 쪽의 Margin으로 정한다.
     -->

@@ -28,6 +28,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 13가지 사전 설정된 뇌파 상태 (집중, 수면, 명상 등)
 - 실시간 주파수 조절 및 볼륨 컨트롤
 - 뇌파 대역을 그리스 문자(δ, θ, α, β, γ)로 표시하고 프리셋을 대역별로 묶음
+- 별표한 프리셋을 목록 맨 위 Favorites에 모아 표시
 - GitHub 릴리스를 통한 자동 업데이트와 버전 선택
 
 ## Project Architecture
@@ -51,21 +52,21 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `AppUpdates.cs` - Siakun.AutoUpdate의 `UpdateService`에 이 앱의 저장소 주소와 설정 저장을 연결합니다.
 
 ### Model (`/Model/`)
-- `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋
+- `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋. 즐겨찾기를 저장할 때는 표시 이름이 아니라 바꾸지 않는 `Id`를 씁니다.
 - `BrainwaveBand.cs` - 비트가 속하는 뇌파 대역의 경계, 기호, 설명. 대역 판정은 이 표 한 곳에서만 합니다.
-- `AppSettings.cs` - 자동 업데이트, 베타 수신 같은 사용자 설정
+- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
 
 ### View (`/View/`)
 - `MainWindow.xaml` - 프레임, 업데이트 알림 막대, 하단 탭
 - `Waves.xaml` - 지금 들리는 비트와 재생 버튼, 전체 음량, 좌우 채널 조절
 - `ChannelCard.xaml` - 한 채널의 주파수와 음량 카드. Waves가 좌우에 하나씩 놓습니다.
-- `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록
+- `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록. 별표한 프리셋은 맨 위 Favorites에 한 번 더 보입니다.
 - `Settings.xaml` - 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
 
 ### ViewModel (`/ViewModel/`)
 - `MainViewModel.cs` - 네비게이션 처리 및 프리셋 컬렉션 관리 (집중, 수면, 명상 등 13개의 사전 구성 상태)
 - `WavesViewModel.cs` - 주파수 조절, 재생/정지, 볼륨 컨트롤 관리. WeakReferenceMessenger를 통한 프리셋 선택 수신
-- `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장
+- `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장. 즐겨찾기 상태는 `SettingsStore`에 저장된 값에서 매번 다시 계산합니다.
 - `SettingsViewModel.cs` - 설정 화면의 링크와 오픈소스 목록
 - `UpdatesViewModel.cs` - 업데이트 상태와 조작. 앱 전체에 하나만 두고 메인 창의 알림 막대와 설정 화면이 함께 봅니다.
 
@@ -73,8 +74,10 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `BoolToPlayStopTextConverter.cs` - 재생 상태에 따른 텍스트 변환
 
 ### Behaviors (`/Behaviors/`)
-- `WindowAutoFit.cs` - 창의 최소 크기와 시작 크기를 콘텐츠가 요구하는 크기에서 도출한다. 창에 `WindowAutoFit.IsEnabled`를 붙이면 페이지를 띄울 때마다 다시 측정한다. 목록처럼 항목 수만큼 길어지는 페이지는 `WindowAutoFit.FitsContent="False"`로 선언해 창이 그 길이를 따라가지 않게 한다.
+- `WindowAutoFit.cs` - 창의 최소 크기와 시작 크기를 콘텐츠가 요구하는 크기에서 도출한다. 창에 `WindowAutoFit.IsEnabled`를 붙이면 페이지를 띄울 때마다 다시 측정한다. 목록처럼 항목 수만큼 길어지는 페이지는 `WindowAutoFit.FitsContent="False"`로 선언해 창이 그 길이를 따라가지 않게 한다. 측정은 창 크기를 바꾸지 않고 하며, 최대화나 최소화한 동안에는 맞추지 않고 보통 상태로 돌아올 때 맞춘다. `SizeToContent`를 바꿔 재지 않는 이유는 `docs/wpf-window-flicker-from-sizetocontent-measure.md`에 있다.
 - `TitleBar.cs` - Windows가 그리는 제목 표시줄의 색을 앱 색에 맞춘다. 제목 표시줄을 직접 그리지 않으므로 창 이동과 스냅 동작은 Windows 기본 그대로다.
+- `SlidingTabIndicator.cs` - 고른 탭을 가리키는 막대 하나를 그 탭의 자리와 폭으로 옮깁니다. 탭이 바뀌면 그 탭이 띄우는 페이지가 뜬 뒤 미끄러지듯 옮겨 가고, Windows 애니메이션 효과 설정과 무관하게 움직입니다. 출발을 늦춘 이유는 `docs/wpf-animation-skipped-while-ui-thread-busy.md`에 있습니다.
+- `FocusCue.cs` - 키보드 포커스 테두리를 마지막 조작에 맞춰 보이거나 숨깁니다. 창에 `FocusCue.IsEnabled`를 붙이면 키보드로 조작할 때만 테두리가 보이고 마우스로 누른 뒤에는 숨습니다. 원인과 판단 기준은 `docs/wpf-focus-visual-after-mouse-click.md`에 있습니다.
 
 ## 창 크기 정책
 창 크기를 사람이 고른 값으로 두면 폰트, DPI 배율, 요소 추가로 콘텐츠 요구 높이가 바뀔 때 조용히 어긋나 스크롤바가 생긴다. 그래서 `MainWindow`는 높이를 지정하지 않고 `WindowAutoFit`이 측정한 값을 쓴다. 각 페이지의 ScrollViewer는 지우지 않고 안전망으로 남긴다. 콘텐츠 요구가 화면 작업 영역을 넘어 창을 더 키울 수 없을 때 요소가 잘리지 않게 받아내는 역할이다.
@@ -110,6 +113,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 주 동작(재생)은 채널 색이 아니라 가장 밝은 글자 색으로 칠합니다.
 - 숫자와 제목은 `Font.Display`(Bahnschrift), 설명과 목록은 `Font.Body`(Segoe UI)를 씁니다.
 - 아이콘은 Material Design 아이콘(PackIcon)을 사용합니다.
+- 누르는 컨트롤의 `FocusVisualStyle`은 `ButtonStyles.xaml`의 `FocusVisual`이나 `FocusVisual.Pill`로 지정합니다. 이 두 스타일만 `FocusCue`를 따르므로, WPF 기본 점선 테두리를 쓰는 컨트롤은 마우스로 누른 뒤에도 테두리가 남을 수 있습니다.
 
 ## 메시징 패턴
 
@@ -155,6 +159,8 @@ BrainWavesWPF
 │  │  ├─ AppInfo.cs
 │  │  ├─ AssemblyInfo.cs
 │  │  ├─ Behaviors
+│  │  │  ├─ FocusCue.cs
+│  │  │  ├─ SlidingTabIndicator.cs
 │  │  │  ├─ TitleBar.cs
 │  │  │  └─ WindowAutoFit.cs
 │  │  ├─ BrainWaves.csproj
@@ -205,8 +211,11 @@ BrainWavesWPF
 ├─ docs
 │  ├─ releases
 │  │  └─ <버전>.md
+│  ├─ wpf-animation-skipped-while-ui-thread-busy.md
+│  ├─ wpf-focus-visual-after-mouse-click.md
 │  ├─ wpf-implicit-style-inside-control-template.md
-│  └─ wpf-ui-state-verification-without-backend.md
+│  ├─ wpf-ui-state-verification-without-backend.md
+│  └─ wpf-window-flicker-from-sizetocontent-measure.md
 ├─ Images
 │  ├─ program_presets.png
 │  ├─ program_settings.png

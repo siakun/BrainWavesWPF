@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace BrainWaves.Model
 {
     /// <summary>
@@ -10,5 +15,15 @@ namespace BrainWaves.Model
         public bool AutoUpdateEnabled { get; init; } = true;
 
         public bool PrereleaseEnabled { get; init; }
+
+        /// <summary>
+        /// 즐겨찾기에 넣은 프리셋의 Id(PresetData.Id). 순서에는 뜻이 없다.
+        /// </summary>
+        public IReadOnlyList<string> FavoritePresets { get; init; } = Array.Empty<string>();
+
+        // INTENT: 이 버전이 모르는 항목도 저장할 때 그대로 다시 쓴다. 설정 화면에서 예전 버전으로 되돌릴 수 있으므로,
+        // 새 버전이 더한 항목이 예전 버전에서 설정을 한 번 저장하는 것만으로 사라지면 안 된다.
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement>? UnknownProperties { get; init; }
     }
 }

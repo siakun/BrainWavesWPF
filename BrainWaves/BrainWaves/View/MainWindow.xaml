@@ -16,6 +16,7 @@
         Width="450" MinWidth="450"
         SizeToContent="Height"
         behaviors:WindowAutoFit.IsEnabled="True"
+        behaviors:FocusCue.IsEnabled="True"
         behaviors:TitleBar.Background="{StaticResource Color.Background}"
         behaviors:TitleBar.Foreground="{StaticResource Color.TextMuted}"
         WindowStartupLocation="CenterScreen"
@@ -152,6 +153,16 @@
                         <TextBlock Text="SETTINGS" Margin="0,3,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </RadioButton>
+
+                <!-- 고른 탭을 가리키는 막대. 탭 줄 전체에 하나만 두고, 위치와 폭은 SlidingTabIndicator가 고른 탭에 맞춘다. -->
+                <Border Grid.ColumnSpan="3"
+                        behaviors:SlidingTabIndicator.IsEnabled="True"
+                        Height="3"
+                        CornerRadius="1.5"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Background="{StaticResource Brush.Text}"
+                        IsHitTestVisible="False"/>
             </Grid>
         </Border>
     </Grid>

@@ -23,19 +23,20 @@ namespace BrainWaves.ViewModel
             showingPageName = new Uri("pack://application:,,,/View/Waves.xaml");
             PresetList = new ObservableCollection<PresetData>();
 
-            PresetList.Add(new("Visualization", 101.08, 109.75));
-            PresetList.Add(new("Creative", 110.72, 138.85));
-            PresetList.Add(new("Focus", 133.00, 162.00));
-            PresetList.Add(new("Work", 194.66, 181.33));
-            PresetList.Add(new("Concentrate", 158.44, 144.98));
-            PresetList.Add(new("Healing", 80.72, 82.22));
-            PresetList.Add(new("Sleep", 75.00, 73.00));
-            PresetList.Add(new("Deep Sleep", 55.96, 54.33));
-            PresetList.Add(new("Perception", 140.00, 100.43));
-            PresetList.Add(new("Cognitive tasks", 340.00, 300.00));
-            PresetList.Add(new("InfraLow", 89.00, 89.35));
-            PresetList.Add(new("Meditation", 85.25, 89.75));
-            PresetList.Add(new("Relax", 95.66, 100.22));
+            // 첫 인자는 설정 파일에 저장되는 Id라 바꾸지 않는다. 표시 이름은 고쳐도 된다.
+            PresetList.Add(new("visualization", "Visualization", 101.08, 109.75));
+            PresetList.Add(new("creative", "Creative", 110.72, 138.85));
+            PresetList.Add(new("focus", "Focus", 133.00, 162.00));
+            PresetList.Add(new("work", "Work", 194.66, 181.33));
+            PresetList.Add(new("concentrate", "Concentrate", 158.44, 144.98));
+            PresetList.Add(new("healing", "Healing", 80.72, 82.22));
+            PresetList.Add(new("sleep", "Sleep", 75.00, 73.00));
+            PresetList.Add(new("deep-sleep", "Deep Sleep", 55.96, 54.33));
+            PresetList.Add(new("perception", "Perception", 140.00, 100.43));
+            PresetList.Add(new("cognitive-tasks", "Cognitive tasks", 340.00, 300.00));
+            PresetList.Add(new("infra-low", "InfraLow", 89.00, 89.35));
+            PresetList.Add(new("meditation", "Meditation", 85.25, 89.75));
+            PresetList.Add(new("relax", "Relax", 95.66, 100.22));
         }
 
         [RelayCommand]

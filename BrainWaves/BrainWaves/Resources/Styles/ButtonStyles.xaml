@@ -213,7 +213,10 @@ Material Design 템플릿을 쓰지 않고 직접 그린다. 물결 효과와 �
         </Setter>
     </Style>
 
-    <!-- 하단 탭. 고른 탭만 글자가 밝아지고 위쪽에 짧은 막대가 선다. -->
+    <!--
+    하단 탭. 고른 탭만 글자가 밝아진다.
+    고른 탭을 가리키는 막대는 탭마다 두지 않고 탭 줄에 하나만 두어 SlidingTabIndicator가 고른 탭 자리로 옮긴다.
+    -->
     <Style x:Key="NavTab" TargetType="RadioButton">
         <Setter Property="Foreground" Value="{StaticResource Brush.TextFaint}"/>
         <Setter Property="Background" Value="Transparent"/>
@@ -227,12 +230,6 @@ Material Design 템플릿을 쓰지 않고 직접 그린다. 물결 효과와 �
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <Grid Background="{TemplateBinding Background}">
-                        <Border x:Name="Indicator"
-                                Width="28" Height="2"
-                                CornerRadius="1"
-                                VerticalAlignment="Top"
-                                Background="{StaticResource Brush.Text}"
-                                Opacity="0"/>
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -241,7 +238,6 @@ Material Design 템플릿을 쓰지 않고 직접 그린다. 물결 효과와 �
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter Property="Foreground" Value="{StaticResource Brush.Text}"/>
-                            <Setter TargetName="Indicator" Property="Opacity" Value="1"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

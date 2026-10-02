@@ -76,6 +76,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 ### Behaviors (`/Behaviors/`)
 - `WindowAutoFit.cs` - 창의 최소 크기와 시작 크기를 콘텐츠가 요구하는 크기에서 도출한다. 창에 `WindowAutoFit.IsEnabled`를 붙이면 페이지를 띄울 때마다 다시 측정한다. 목록처럼 항목 수만큼 길어지는 페이지는 `WindowAutoFit.FitsContent="False"`로 선언해 창이 그 길이를 따라가지 않게 한다.
 - `TitleBar.cs` - Windows가 그리는 제목 표시줄의 색을 앱 색에 맞춘다. 제목 표시줄을 직접 그리지 않으므로 창 이동과 스냅 동작은 Windows 기본 그대로다.
+- `SlidingTabIndicator.cs` - 고른 탭을 가리키는 막대 하나를 그 탭의 자리와 폭으로 옮깁니다. 탭이 바뀌면 그 탭이 띄우는 페이지가 뜬 뒤 미끄러지듯 옮겨 가고, Windows 애니메이션 효과 설정과 무관하게 움직입니다.
 
 ## 창 크기 정책
 창 크기를 사람이 고른 값으로 두면 폰트, DPI 배율, 요소 추가로 콘텐츠 요구 높이가 바뀔 때 조용히 어긋나 스크롤바가 생긴다. 그래서 `MainWindow`는 높이를 지정하지 않고 `WindowAutoFit`이 측정한 값을 쓴다. 각 페이지의 ScrollViewer는 지우지 않고 안전망으로 남긴다. 콘텐츠 요구가 화면 작업 영역을 넘어 창을 더 키울 수 없을 때 요소가 잘리지 않게 받아내는 역할이다.
@@ -156,6 +157,7 @@ BrainWavesWPF
 │  │  ├─ AppInfo.cs
 │  │  ├─ AssemblyInfo.cs
 │  │  ├─ Behaviors
+│  │  │  ├─ SlidingTabIndicator.cs
 │  │  │  ├─ TitleBar.cs
 │  │  │  └─ WindowAutoFit.cs
 │  │  ├─ BrainWaves.csproj

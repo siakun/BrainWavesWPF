@@ -27,8 +27,9 @@ namespace BrainWaves
 
         protected override void OnExit(ExitEventArgs e)
         {
-            // 소리를 먼저 멈춰 오디오 장치를 놓은 뒤, 받아 둔 업데이트를 이 프로세스가 끝난 다음 적용하도록 예약한다.
-            AudioService.Instance.Stop();
+            // 소리를 먼저 멈춰 오디오 장치를 놓고 아직 저장하지 않은 전체 음량을 저장한 뒤,
+            // 받아 둔 업데이트를 이 프로세스가 끝난 다음 적용하도록 예약한다.
+            AudioService.Instance.Shutdown();
             AppUpdates.Service.ApplyOnExit();
 
             base.OnExit(e);

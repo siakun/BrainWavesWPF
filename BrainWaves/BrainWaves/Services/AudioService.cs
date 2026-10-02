@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Windows.Threading;
 using BrainWaves.Model;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -8,6 +10,7 @@ namespace BrainWaves.Services
     /// <summary>
     /// 좌우 주파수, 채널 음량, 전체 음량과 재생 여부를 앱 전체에 하나만 두고 소리에 반영한다.
     /// 화면은 이 인스턴스에 바인딩한다. 값을 바꾸면 재생 중인 소리에 바로 적용되고, 멈춰 있으면 다음 재생에 쓰인다.
+    /// 전체 음량은 설정 파일에 저장해 다음 실행에도 이어 쓴다.
     /// </summary>
     // INTENT: 페이지와 그 ViewModel은 탭을 옮길 때마다 새로 만들어진다. 소리 값을 페이지마다 두고 메시지로 맞추면
     // 재생하지 않는 동안 바꾼 값이 페이지와 함께 사라지고, 사본마다 값이 달라 어느 값으로 재생할지가 경우에 따라 바뀐다.
@@ -24,19 +27,28 @@ namespace BrainWaves.Services
         /// <summary>채널 음량과 전체 음량의 최댓값. 음량은 0에서 이 값 사이의 백분율이다.</summary>
         public const double MaxLevel = 100;
 
+        // 슬라이더를 끄는 동안에는 값이 잇달아 바뀌므로, 움직임이 멈춘 뒤에 한 번만 저장한다.
+        private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(500);
+
         public static AudioService Instance { get; } = new();
 
         private readonly PlaySound _sound = new();
+        private readonly SettingsStore _settings = SettingsStore.Instance;
+        private readonly DispatcherTimer _saveTimer;
 
         private double _leftFrequency = 75;
         private double _rightFrequency = 73;
         private double _leftGain = 50;
         private double _rightGain = 50;
-        private double _masterVolume = 50;
+        private double _masterVolume;
         private bool _isPlaying;
 
         private AudioService()
         {
+            _masterVolume = ClampLevel(_settings.Current.MasterVolume);
+            _saveTimer = new DispatcherTimer { Interval = SaveDelay };
+            _saveTimer.Tick += (_, _) => SaveMasterVolume();
+
             _sound.SetFrequencies(_leftFrequency, _rightFrequency);
             ApplyLevels();
         }
@@ -85,7 +97,11 @@ namespace BrainWaves.Services
             get => _masterVolume;
             set
             {
-                if (SetProperty(ref _masterVolume, ClampLevel(value))) ApplyLevels();
+                if (!SetProperty(ref _masterVolume, ClampLevel(value))) return;
+
+                ApplyLevels();
+                _saveTimer.Stop();
+                _saveTimer.Start();
             }
         }
 
@@ -134,6 +150,15 @@ namespace BrainWaves.Services
             IsPlaying = false;
         }
 
+        /// <summary>
+        /// 앱을 끝낼 때 부른다. 소리를 멈춰 출력 장치를 놓고, 아직 저장하지 않은 전체 음량을 저장한다.
+        /// </summary>
+        public void Shutdown()
+        {
+            Stop();
+            if (_saveTimer.IsEnabled) SaveMasterVolume();
+        }
+
         private void OnFrequencyChanged()
         {
             _sound.SetFrequencies(_leftFrequency, _rightFrequency);
@@ -145,6 +170,22 @@ namespace BrainWaves.Services
         {
             _sound.SetGains(_leftGain / MaxLevel, _rightGain / MaxLevel);
             _sound.SetMasterVolume(_masterVolume / MaxLevel);
+        }
+
+        private void SaveMasterVolume()
+        {
+            _saveTimer.Stop();
+            var volume = _masterVolume;
+
+            try
+            {
+                _settings.Update(settings => settings with { MasterVolume = volume });
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // 저장하지 못해도 이번 실행 동안은 바꾼 음량으로 계속 재생한다.
+                Debug.WriteLine($"[AudioService] Failed to save master volume: {ex.Message}");
+            }
         }
 
         private static double ClampFrequency(double value) => Math.Clamp(value, MinFrequency, MaxFrequency);

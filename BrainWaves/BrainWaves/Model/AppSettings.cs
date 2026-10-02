@@ -21,6 +21,11 @@ namespace BrainWaves.Model
         /// </summary>
         public IReadOnlyList<string> FavoritePresets { get; init; } = Array.Empty<string>();
 
+        /// <summary>
+        /// 전체 음량. 0에서 100 사이의 백분율이다.
+        /// </summary>
+        public double MasterVolume { get; init; } = 50;
+
         // INTENT: 이 버전이 모르는 항목도 저장할 때 그대로 다시 쓴다. 설정 화면에서 예전 버전으로 되돌릴 수 있으므로,
         // 새 버전이 더한 항목이 예전 버전에서 설정을 한 번 저장하는 것만으로 사라지면 안 된다.
         [JsonExtensionData]

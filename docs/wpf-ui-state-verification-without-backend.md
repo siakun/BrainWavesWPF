@@ -186,6 +186,18 @@ field.SetValue(null, original);
 
 코드에서 그때그때 `SystemParameters`를 읽는 동작에는 바로 반영됩니다. 이 저장소에서는 필드를 바꾸자 같은 실행 안에서 그 값을 읽는 코드의 분기가 바뀌는 것으로 확인했습니다. XAML에서 `{x:Static SystemParameters...}`로 읽는 값은 그 XAML을 불러올 때 정해지므로, 필드를 바꾼 뒤에 화면을 만듭니다. 필드 이름도 비공개 구현이므로, 찾지 못하면 `SystemParameters`의 비공개 정적 필드 가운데 설정 이름이 들어간 것을 나열해 찾습니다.
 
+## 설정을 저장하는 동작을 확인할 때
+
+검증 프로그램은 앱의 설정 저장소를 그대로 쓰므로, 음량이나 즐겨찾기처럼 저장하는 값을 바꾸면 사용자의 설정 파일을 덮어씁니다. 설정을 바꾸는 검증에서는 창을 만들기 전에 저장소의 저장 경로를 검증 결과 폴더의 임시 파일로 돌립니다. 읽기는 이미 끝난 뒤라 사용자 설정에서 시작하고, 저장만 임시 파일로 갑니다.
+
+```csharp
+var store = SettingsStore.Instance;   // 여기서 사용자 설정을 읽는다
+typeof(SettingsStore).GetField("_path", BindingFlags.NonPublic | BindingFlags.Instance)!
+    .SetValue(store, Path.Combine(outDir, "settings.json"));
+```
+
+검증 전후에 사용자 설정 파일의 해시를 비교해 바뀌지 않았음을 확인합니다. 다음 실행에서 저장한 값을 읽는지는 같은 임시 경로로 저장소를 하나 더 만들어(비공개 생성자를 리플렉션으로 호출) 읽어 봅니다.
+
 ## 실제 실행 파일을 조작해 찍을 때
 
 앱이 실제로 도달하는 상태(첫 화면, 재생 중 화면, 탭 이동)는 빌드한 실행 파일을 UI Automation으로 조작해 찍는 편이 앱의 시작 경로까지 함께 확인됩니다. 이때 확인한 주의점은 다음과 같습니다.

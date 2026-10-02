@@ -23,7 +23,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 ## 네비게이션 아키텍처
 앱은 MainViewModel이 제어하는 프레임 기반 네비게이션을 사용합니다. 네비게이션 명령은 메인 윈도우의 네비게이션 바를 유지하면서 세 페이지 간을 전환합니다. 각 페이지는 중앙 프레임 요소에 로드됩니다.
 
-페이지와 그 ViewModel은 탭을 옮길 때마다 새로 만들어집니다. 그래서 화면을 오가도 남아야 하는 상태는 페이지 ViewModel에 두지 않고 앱 수명 동안 하나뿐인 객체에 둡니다. 소리 값은 `AudioService`, 업데이트 상태는 `UpdatesViewModel`, 저장하는 설정은 `SettingsStore`가 원본이고, 페이지 ViewModel은 그 객체를 노출해 화면이 바로 바인딩하게 합니다. 상태의 사본을 여러 곳에 두고 메시지로 맞추지 않습니다.
+페이지와 그 ViewModel은 탭을 옮길 때마다 새로 만들어집니다. 그래서 화면을 오가도 남아야 하는 상태는 페이지 ViewModel에 두지 않고 앱 수명 동안 하나뿐인 객체에 둡니다. 소리 값은 `AudioService`, 업데이트 상태는 `UpdatesViewModel`, 저장하는 설정은 `SettingsStore`가 원본이고, 페이지 ViewModel은 그 객체를 노출해 화면이 바로 바인딩하게 합니다. 상태의 사본을 여러 곳에 두고 메시지로 맞추지 않습니다. 원인과 판단 근거는 `docs/wpf-page-state-lost-on-frame-navigation.md`에 있습니다.
 
 화면은 하단 탭으로만 고릅니다. Frame의 방문 기록은 남기지 않아, Alt+←, Backspace, 마우스의 뒤로 가기 버튼으로 탭과 다른 화면이 뜨지 않게 합니다.
 
@@ -212,6 +212,7 @@ BrainWavesWPF
 │  ├─ wpf-animation-skipped-while-ui-thread-busy.md
 │  ├─ wpf-focus-visual-after-mouse-click.md
 │  ├─ wpf-implicit-style-inside-control-template.md
+│  ├─ wpf-page-state-lost-on-frame-navigation.md
 │  ├─ wpf-ui-state-verification-without-backend.md
 │  └─ wpf-window-flicker-from-sizetocontent-measure.md
 ├─ Images

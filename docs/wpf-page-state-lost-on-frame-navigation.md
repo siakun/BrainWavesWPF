@@ -15,12 +15,13 @@
 - 주소로 탐색하는 `Frame`은 페이지에 갈 때마다 BAML을 다시 읽어 새 인스턴스를 만듭니다. 페이지 XAML의 `<Page.DataContext><vm:WavesViewModel/></Page.DataContext>`도 그때마다 새 ViewModel을 만듭니다. 검증 프로그램에서 탭을 오간 뒤의 ViewModel은 앞의 것과 다른 인스턴스였고, 필드 초기값으로 돌아가 있었습니다.
 - 앞의 ViewModel이 들고 있던 값을 새 ViewModel이 받아 오는 경로는 없습니다. 이 앱은 재생 중일 때만 오디오 서비스에서 값을 읽어 와, 재생하지 않는 동안 바꾼 값이 사라졌습니다. 재생 중인 프리셋도 Presets 화면의 ViewModel이 필드로 기억하고 있어서, 새로 만든 화면은 그것을 몰랐습니다.
 - `Frame`은 `NavigationUIVisibility="Hidden"`이어도 자기 방문 기록을 남기고 `NavigationCommands.BrowseBack`을 처리합니다. 이 명령의 기본 단축키는 Alt+←와 Backspace입니다. 마우스의 뒤로 가기 버튼이 보내는 브라우저 뒤로 가기 신호(`APPCOMMAND_BROWSER_BACKWARD`)도 WPF가 같은 명령으로 바꿉니다. 탭을 `RadioButton`으로 직접 그린 앱은 이 탐색을 모르므로 탭과 화면이 어긋납니다.
+- 이 명령은 포커스가 있는 요소에서 시작해 위로 올라가므로, 포커스가 페이지 안에 있을 때만 `Frame`에 닿습니다. 검증 프로그램에서 프리셋 줄에서 시작한 명령은 `Frame`에 닿았고, `Frame` 밖의 하단 탭에서 시작한 명령은 닿지 않았습니다. 그래서 탭만 눌러 볼 때는 드러나지 않고, 프리셋 줄처럼 페이지 안의 버튼을 누른 뒤 Backspace를 누르는 흔한 조작에서 어긋납니다.
 
 ## 진단 절차
 
 1. 페이지를 오간 뒤 그 페이지의 `DataContext`가 앞의 것과 같은 인스턴스인지 봅니다(`ReferenceEquals`). 다르면 ViewModel에 둔 상태는 탭을 옮길 때마다 사라지는 구조입니다.
 2. 사라지는 값이 어느 객체에 있는지 적어 봅니다. 화면을 떠나도 남아야 하는 값이 페이지 ViewModel의 필드에 있으면 이 문서의 원인입니다. 같은 값을 여러 객체가 나눠 들고 메시지나 이벤트로 맞추고 있으면, 맞추는 경로가 모든 조작을 덮는지도 봅니다.
-3. 탭과 화면이 어긋나면 `Frame`에 `NavigationCommands.BrowseBack`을 실행해 봅니다. 화면이 바뀌고 탭이 그대로면 방문 기록 때문입니다.
+3. 탭과 화면이 어긋나면 페이지 안의 요소를 대상으로 `NavigationCommands.BrowseBack`을 실행해 봅니다(`BrowseBack.Execute(null, 페이지 안의 버튼)`). 화면이 바뀌고 탭이 그대로면 방문 기록 때문입니다. `Frame` 밖의 요소를 대상으로 실행하면 명령이 `Frame`에 닿지 않아 재현되지 않습니다.
 
 실제 키보드와 마우스 없이 탭을 누르고 명령을 실행하는 방법은 [실제 백엔드 없이 WPF 화면 상태를 그려 확인하기](wpf-ui-state-verification-without-backend.md)에 있습니다.
 
@@ -62,7 +63,7 @@ PageFrame.Navigated += (_, _) =>
 | 재생 중 왼쪽 주파수를 120으로 바꿈 | 소리에 반영되지 않음(코드에서 확인) | 소리를 만드는 쪽의 주파수가 120으로 바뀜 |
 | 프리셋을 고름 | 전체 음량이 50%로 바뀜(코드에서 확인) | 주파수만 바뀌고 음량은 그대로 |
 | 프리셋 재생 중 Waves에 갔다가 Presets로 돌아옴 | 재생 표시가 사라짐(코드에서 확인) | 표시가 그대로이고, 다시 누르면 멈춤 |
-| Presets 탭을 고른 뒤 `BrowseBack` 실행 | 화면만 Waves로 바뀌고 탭은 Presets | 화면과 탭 모두 Presets |
+| Presets 탭을 고른 뒤 `Frame`을 대상으로 `BrowseBack` 실행 | 화면만 Waves로 바뀌고 탭은 Presets | 화면과 탭 모두 Presets |
 | 전체 음량을 바꾸자마자 앱 종료 | 저장하지 않음 | 바꾼 값이 저장됨 |
 
 재생은 전체 음량을 0%와 1%로 낮춰 들리지 않게 확인했습니다. 화면을 오가도 남아야 하는 값을 새로 추가할 때는, 그 값을 바꾼 뒤 탭을 오가고 같은 값이 보이는지 위와 같은 방법으로 확인합니다.

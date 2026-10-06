@@ -50,24 +50,26 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource Text.Title}" Text="BrainWaves"/>
-                                    <TextBlock Style="{StaticResource Text.Readout}"
-                                               FontSize="14"
-                                               FontWeight="Normal"
-                                               Margin="8,0,0,0"
-                                               VerticalAlignment="Center"
-                                               Foreground="{StaticResource Brush.TextMuted}"
-                                               Text="{Binding Updates.CurrentVersion}"/>
-                                </StackPanel>
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <!--
+                                글꼴이 다른 이름과 버전을 한 TextBlock의 Run으로 이어 기준선을 맞춘다.
+                                TextBlock 둘을 나란히 두면 Bahnschrift의 기준선이 Segoe UI보다 줄 위쪽에 있어 숫자가 떠 보인다.
+                                Run에는 여백을 줄 수 없어 간격은 글자 크기의 절반인 en space로 둔다.
+                                -->
+                                <TextBlock Style="{StaticResource Text.Title}">
+                                    <Run Text="BrainWaves"/><Run Text="&#x2002;"/><Run FontFamily="{StaticResource Font.Display}"
+                                         FontWeight="Normal"
+                                         Typography.NumeralAlignment="Tabular"
+                                         Foreground="{StaticResource Brush.TextMuted}"
+                                         Text="{Binding Updates.CurrentVersion, Mode=OneWay}"/>
+                                </TextBlock>
                                 <TextBlock Style="{StaticResource Text.Status}"
                                            Margin="0,4,0,0"
                                            Text="{Binding Updates.StatusText}"/>
                             </StackPanel>
                             <Button Grid.Column="1"
                                     Style="{StaticResource Button.Secondary}"
-                                    VerticalAlignment="Top"
+                                    VerticalAlignment="Center"
                                     Content="Check now"
                                     Command="{Binding Updates.CheckForUpdatesCommand}"/>
                         </Grid>
@@ -130,15 +132,14 @@
                                           VerticalAlignment="Center"
                                           AutomationProperties.Name="Version">
                                     <ComboBox.ItemTemplate>
+                                        <!-- 위 버전 표시와 같은 이유로 버전과 꼬리표를 한 TextBlock의 Run으로 잇는다. -->
                                         <DataTemplate DataType="{x:Type vm:VersionOption}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock FontFamily="{StaticResource Font.Display}"
-                                                           Typography.NumeralAlignment="Tabular"
-                                                           Text="{Binding Version}"/>
-                                                <TextBlock Margin="8,0,0,0"
-                                                           Foreground="{StaticResource Brush.TextMuted}"
-                                                           Text="{Binding Tag}"/>
-                                            </StackPanel>
+                                            <TextBlock>
+                                                <Run FontFamily="{StaticResource Font.Display}"
+                                                     Typography.NumeralAlignment="Tabular"
+                                                     Text="{Binding Version, Mode=OneWay}"/><Run Text="&#x2002;"/><Run Foreground="{StaticResource Brush.TextMuted}"
+                                                     Text="{Binding Tag, Mode=OneWay}"/>
+                                            </TextBlock>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>

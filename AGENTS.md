@@ -149,6 +149,7 @@ BrainWavesWPF
 ├─ .github
 │  └─ workflows
 │     └─ release.yml
+├─ AGENTS.md
 ├─ BrainWaves
 │  ├─ BrainWaves
 │  │  ├─ App.xaml
@@ -205,7 +206,6 @@ BrainWavesWPF
 │  │     └─ WavesViewModel.cs
 │  └─ BrainWaves.sln
 ├─ build.bat
-├─ CLAUDE.md
 ├─ docs
 │  ├─ releases
 │  │  └─ <버전>.md

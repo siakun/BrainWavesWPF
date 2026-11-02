@@ -36,6 +36,8 @@
         두 겹은 좌우 채널이다. 뒤쪽 겹은 왼쪽, 앞쪽 겹은 오른쪽 채널 색으로 그린다.
         면과 선을 따로 그리는 것은 닫힌 면에 선을 그으면 타일 양 끝의 세로 변까지 그어져 이음매마다 줄이 서기 때문이다.
         Windows에서 애니메이션 표시를 끈 사용자에게는 파형을 흘리지 않는다.
+        창을 트레이로 숨긴 동안에도 흘리지 않는다. 볼 사람이 없는 동안 애니메이션을 계속 돌릴 이유가 없고,
+        다시 띄우면 위의 이유로 이음매 없이 이어 흐른다.
         -->
         <Style x:Key="LeftWaveStyle" TargetType="Rectangle">
             <Setter Property="Fill">
@@ -72,6 +74,7 @@
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding Audio.IsPlaying}" Value="True"/>
                         <Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True"/>
+                        <Condition Binding="{Binding IsVisible, RelativeSource={RelativeSource Self}}" Value="True"/>
                     </MultiDataTrigger.Conditions>
                     <MultiDataTrigger.EnterActions>
                         <BeginStoryboard>
@@ -134,6 +137,7 @@
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding Audio.IsPlaying}" Value="True"/>
                         <Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True"/>
+                        <Condition Binding="{Binding IsVisible, RelativeSource={RelativeSource Self}}" Value="True"/>
                     </MultiDataTrigger.Conditions>
                     <MultiDataTrigger.EnterActions>
                         <BeginStoryboard>

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
+using BrainWaves.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -10,7 +12,30 @@ namespace BrainWaves.ViewModel
 {
     public partial class SettingsViewModel : ObservableObject
     {
+        private readonly SettingsStore _settings = SettingsStore.Instance;
+
         public UpdatesViewModel Updates { get; } = UpdatesViewModel.Instance;
+
+        /// <summary>
+        /// 창을 닫으면 트레이로 숨길지 여부. 값의 원본은 설정 저장소이고 이 화면은 읽고 쓰기만 한다.
+        /// </summary>
+        public bool CloseToTray
+        {
+            get => _settings.Current.CloseToTray;
+            set
+            {
+                try
+                {
+                    _settings.Update(settings => settings with { CloseToTray = value });
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    // 저장하지 못했으면 스위치를 저장된 값으로 되돌린다.
+                    Debug.WriteLine($"[SettingsViewModel] Failed to save close-to-tray: {ex.Message}");
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public string RepositoryUrl => AppInfo.RepositoryUrl;
 
@@ -21,6 +46,7 @@ namespace BrainWaves.ViewModel
         public IReadOnlyList<OpenSourceLibrary> Libraries { get; } = new OpenSourceLibrary[]
         {
             new("CommunityToolkit.Mvvm", "MIT", "https://github.com/CommunityToolkit/dotnet"),
+            new("H.NotifyIcon", "MIT", "https://github.com/HavenDV/H.NotifyIcon"),
             new("MaterialDesignInXamlToolkit", "MIT", "https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit"),
             new("NAudio", "MIT", "https://github.com/naudio/NAudio"),
             new("Velopack", "MIT", "https://github.com/velopack/velopack"),

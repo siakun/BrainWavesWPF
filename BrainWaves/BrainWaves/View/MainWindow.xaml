@@ -1,6 +1,7 @@
 <!--
 하단 탭과 업데이트 알림 막대가 있는 프레임 기반 네비게이션 컨테이너.
 앱 이름은 Windows 제목 표시줄이 보여 주므로 창 안에 따로 머리 막대를 두지 않고, 그 자리를 각 페이지에 준다.
+알림 영역(트레이) 아이콘도 이 창이 가진다. 창을 닫으면 트레이로 숨기는 설정이 켜져 있으면 창은 닫히지 않고 숨으며, 트레이 아이콘으로 다시 띄운다.
 -->
 <Window x:Class="BrainWaves.View.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -11,6 +12,7 @@
         xmlns:vm="clr-namespace:BrainWaves.ViewModel"
         xmlns:views="clr-namespace:BrainWaves.View"
         xmlns:behaviors="clr-namespace:BrainWaves.Behaviors"
+        xmlns:tray="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
         mc:Ignorable="d"
         Title="BrainWaves"
         Width="450" MinWidth="450"
@@ -166,5 +168,26 @@
                         IsHitTestVisible="False"/>
             </Grid>
         </Border>
+
+        <!--
+        알림 영역(트레이) 아이콘. 창을 닫으면 트레이로 숨기는 설정이 켜져 있을 때만 보인다.
+        아이콘을 누르면 창을 다시 띄우고, 오른쪽 버튼 메뉴로 재생을 켜고 끄거나 앱을 끝낸다.
+        메뉴는 창 밖의 팝업에 그려져 창의 글꼴을 물려받지 않으므로 글꼴을 따로 정한다.
+        -->
+        <tray:TaskbarIcon x:Name="TrayIcon"
+                          ToolTipText="BrainWaves"
+                          NoLeftClickDelay="True"
+                          PreviewTrayContextMenuOpen="OnTrayMenuOpening"
+                          Visibility="{Binding CloseToTray, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <tray:TaskbarIcon.ContextMenu>
+                <ContextMenu FontFamily="{StaticResource Font.Body}">
+                    <MenuItem Header="Open BrainWaves" FontWeight="SemiBold" Click="OnTrayOpenClick"/>
+                    <MenuItem Header="{Binding Audio.IsPlaying, Converter={StaticResource BoolToPlayStopTextConverter}}"
+                              Command="{Binding TogglePlaybackCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Quit BrainWaves" Click="OnTrayQuitClick"/>
+                </ContextMenu>
+            </tray:TaskbarIcon.ContextMenu>
+        </tray:TaskbarIcon>
     </Grid>
 </Window>

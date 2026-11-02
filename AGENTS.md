@@ -35,6 +35,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 뇌파 대역을 그리스 문자(δ, θ, α, β, γ)로 표시하고 프리셋을 대역별로 묶음
 - 별표한 프리셋을 목록 맨 위 Favorites에 모아 표시
 - 손잡이를 끌어 Favorites와 각 대역 묶음 안에서 프리셋 순서를 바꾸고 다음 실행에도 유지. 묶음끼리의 순서는 고정
+- 창을 닫으면 앱을 끝내지 않고 알림 영역(트레이)으로 숨겨 소리를 이어 재생. 기본값은 켜짐이고 설정에서 끔
 - GitHub 릴리스를 통한 자동 업데이트와 버전 선택
 
 ## Project Architecture
@@ -45,6 +46,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - **CommunityToolkit.Mvvm** - 소스 생성기 기반 MVVM 프레임워크. ObservableObject와 RelayCommand를 씁니다
 - **MaterialDesignThemes**, **MaterialDesignColors** - 아이콘(PackIcon)과 기본 컨트롤 스타일
 - **NAudio** - 좌우 채널 사인파의 실시간 재생
+- **H.NotifyIcon.Wpf** - 알림 영역(트레이) 아이콘과 그 메뉴. 버전을 고정한 이유는 프로젝트 파일의 주석에 있습니다
 - **Siakun.AutoUpdate** - GitHub 릴리스 조회, 업데이트 다운로드, 버전 전환. Velopack은 이 패키지의 의존성으로 들어오므로 앱에서 따로 참조하지 않습니다
 
 
@@ -67,17 +69,17 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋. 즐겨찾기를 저장할 때는 표시 이름이 아니라 바꾸지 않는 `Id`를 씁니다.
 - `PresetCatalog.cs` - 앱에 들어 있는 프리셋 목록
 - `BrainwaveBand.cs` - 비트가 속하는 뇌파 대역의 경계, 기호, 설명. 대역 판정은 이 표 한 곳에서만 합니다.
-- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기와 그 순서, 대역 묶음 안의 프리셋 순서, 전체 음량 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
+- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기와 그 순서, 대역 묶음 안의 프리셋 순서, 전체 음량, 창을 닫을 때 트레이로 숨길지 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
 
 ### View (`/View/`)
-- `MainWindow.xaml` - 프레임, 업데이트 알림 막대, 하단 탭
+- `MainWindow.xaml` - 프레임, 업데이트 알림 막대, 하단 탭, 트레이 아이콘과 그 메뉴. 트레이로 숨기는 설정이 켜져 있으면 닫을 때 창을 숨기고, 앱 전체를 끝낼 때(트레이 메뉴의 종료, 업데이트 재시작)는 그대로 닫힙니다.
 - `Waves.xaml` - 지금 들리는 비트와 재생 버튼, 전체 음량, 좌우 채널 조절
 - `ChannelCard.xaml` - 한 채널의 주파수와 음량 카드. Waves가 좌우에 하나씩 놓습니다.
 - `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록. 별표한 프리셋은 맨 위 Favorites에 한 번 더 보입니다. 줄 왼쪽 손잡이를 끌면 그 줄이 속한 묶음 안에서 순서가 바뀝니다.
-- `Settings.xaml` - 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
+- `Settings.xaml` - 트레이로 숨기기 옵션, 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
 
 ### ViewModel (`/ViewModel/`)
-- `MainViewModel.cs` - 하단 탭이 고른 페이지와 업데이트 알림 막대가 보는 상태
+- `MainViewModel.cs` - 하단 탭이 고른 페이지, 업데이트 알림 막대가 보는 상태, 트레이 아이콘의 표시 여부와 트레이 메뉴의 재생 전환
 - `WavesViewModel.cs` - 주파수를 0.01 Hz씩 옮기는 버튼과 재생 버튼. 소리 값은 들고 있지 않고 `Audio`(AudioService)를 노출합니다.
 - `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장. 재생 표시는 `AudioService`의 지금 소리에서, 즐겨찾기 상태와 묶음 안의 순서는 `SettingsStore`에 저장된 값에서 매번 다시 계산합니다. 끌어서 옮긴 순서는 먼저 저장한 뒤 저장된 값으로 화면을 맞춥니다.
 - `SettingsViewModel.cs` - 설정 화면의 링크와 오픈소스 목록

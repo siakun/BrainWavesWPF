@@ -1,5 +1,5 @@
 <!--
-설정 페이지. 업데이트, 앱 소개, 오픈소스 목록을 차례로 놓는다.
+설정 페이지. 일반, 업데이트, 앱 소개, 오픈소스 목록을 차례로 놓는다.
 업데이트 상태와 조작은 앱 전체가 공유하는 UpdatesViewModel에 있어, 버전을 받는 중에 다른 화면으로 옮겼다 돌아와도 그대로 보인다.
 오픈소스 목록은 패키지 수만큼 길어지므로 창 높이를 이 페이지에 맞추지 않는다.
 -->
@@ -40,6 +40,27 @@
                       HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="16,20,16,24">
                 <TextBlock Style="{StaticResource Text.PageTitle}" Margin="4,0,0,0" Text="Settings"/>
+
+                <!-- 일반 -->
+                <TextBlock Style="{StaticResource SectionLabel}" Text="GENERAL"/>
+                <Border Style="{StaticResource Card}">
+                    <Grid Margin="16,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Style="{StaticResource Text.Title}" Text="Keep running in the tray"/>
+                            <TextBlock Style="{StaticResource Text.Caption}" Margin="0,3,0,0"
+                                       Text="Closing the window hides BrainWaves to the system tray, and the sound keeps playing. To quit, right-click the tray icon."/>
+                        </StackPanel>
+                        <ToggleButton Grid.Column="1"
+                                      Style="{StaticResource Toggle.Switch}"
+                                      VerticalAlignment="Center"
+                                      IsChecked="{Binding CloseToTray}"
+                                      AutomationProperties.Name="Keep running in the tray"/>
+                    </Grid>
+                </Border>
 
                 <!-- 업데이트 -->
                 <TextBlock Style="{StaticResource SectionLabel}" Text="UPDATES"/>

@@ -33,7 +33,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- 실행 파일 아이콘(ApplicationIcon)과 같은 파일을 트레이 아이콘으로도 쓰려고 WPF 리소스로 넣는다. -->
+    <Resource Include="Resources\BrainWaves.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <!-- INTENT: 알림 영역(트레이) 아이콘. 2.4부터는 패키지에 .NET 8용 빌드가 없어 이 앱에서는 .NET Framework용 빌드가 쓰이므로,
+         .NET 8용 빌드가 들어 있는 2.3 계열에 둔다. 앱의 대상 프레임워크를 올리면 이 버전도 함께 올린다. -->
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.3.2" />
     <PackageReference Include="MaterialDesignColors" Version="5.2.2-ci998" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.2-ci998" />
     <PackageReference Include="NAudio" Version="2.2.1" />

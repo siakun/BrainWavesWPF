@@ -33,6 +33,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 실시간 주파수 조절 및 볼륨 컨트롤. 전체 음량은 다음 실행에도 유지
 - 뇌파 대역을 그리스 문자(δ, θ, α, β, γ)로 표시하고 프리셋을 대역별로 묶음
 - 별표한 프리셋을 목록 맨 위 Favorites에 모아 표시
+- 손잡이를 끌어 Favorites와 각 대역 묶음 안에서 프리셋 순서를 바꾸고 다음 실행에도 유지. 묶음끼리의 순서는 고정
 - GitHub 릴리스를 통한 자동 업데이트와 버전 선택
 
 ## Project Architecture
@@ -59,19 +60,19 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋. 즐겨찾기를 저장할 때는 표시 이름이 아니라 바꾸지 않는 `Id`를 씁니다.
 - `PresetCatalog.cs` - 앱에 들어 있는 프리셋 목록
 - `BrainwaveBand.cs` - 비트가 속하는 뇌파 대역의 경계, 기호, 설명. 대역 판정은 이 표 한 곳에서만 합니다.
-- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기, 전체 음량 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
+- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기와 그 순서, 대역 묶음 안의 프리셋 순서, 전체 음량 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
 
 ### View (`/View/`)
 - `MainWindow.xaml` - 프레임, 업데이트 알림 막대, 하단 탭
 - `Waves.xaml` - 지금 들리는 비트와 재생 버튼, 전체 음량, 좌우 채널 조절
 - `ChannelCard.xaml` - 한 채널의 주파수와 음량 카드. Waves가 좌우에 하나씩 놓습니다.
-- `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록. 별표한 프리셋은 맨 위 Favorites에 한 번 더 보입니다.
+- `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록. 별표한 프리셋은 맨 위 Favorites에 한 번 더 보입니다. 줄 왼쪽 손잡이를 끌면 그 줄이 속한 묶음 안에서 순서가 바뀝니다.
 - `Settings.xaml` - 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
 
 ### ViewModel (`/ViewModel/`)
 - `MainViewModel.cs` - 하단 탭이 고른 페이지와 업데이트 알림 막대가 보는 상태
 - `WavesViewModel.cs` - 주파수를 0.01 Hz씩 옮기는 버튼과 재생 버튼. 소리 값은 들고 있지 않고 `Audio`(AudioService)를 노출합니다.
-- `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장. 재생 표시는 `AudioService`의 지금 소리에서, 즐겨찾기 상태는 `SettingsStore`에 저장된 값에서 매번 다시 계산합니다.
+- `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장. 재생 표시는 `AudioService`의 지금 소리에서, 즐겨찾기 상태와 묶음 안의 순서는 `SettingsStore`에 저장된 값에서 매번 다시 계산합니다. 끌어서 옮긴 순서는 먼저 저장한 뒤 저장된 값으로 화면을 맞춥니다.
 - `SettingsViewModel.cs` - 설정 화면의 링크와 오픈소스 목록
 - `UpdatesViewModel.cs` - 업데이트 상태와 조작. 앱 전체에 하나만 두고 메인 창의 알림 막대와 설정 화면이 함께 봅니다.
 
@@ -82,6 +83,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `WindowAutoFit.cs` - 창의 최소 크기와 시작 크기를 콘텐츠가 요구하는 크기에서 도출한다. 창에 `WindowAutoFit.IsEnabled`를 붙이면 페이지를 띄울 때마다 다시 측정한다. 목록처럼 항목 수만큼 길어지는 페이지는 `WindowAutoFit.FitsContent="False"`로 선언해 창이 그 길이를 따라가지 않게 한다. 측정은 창 크기를 바꾸지 않고 하며, 최대화나 최소화한 동안에는 맞추지 않고 보통 상태로 돌아올 때 맞춘다. `SizeToContent`를 바꿔 재지 않는 이유는 `docs/wpf-window-flicker-from-sizetocontent-measure.md`에 있다.
 - `TitleBar.cs` - Windows가 그리는 제목 표시줄의 색을 앱 색에 맞춘다. 제목 표시줄을 직접 그리지 않으므로 창 이동과 스냅 동작은 Windows 기본 그대로다.
 - `SlidingTabIndicator.cs` - 고른 탭을 가리키는 막대 하나를 그 탭의 자리와 폭으로 옮깁니다. 탭이 바뀌면 그 탭이 띄우는 페이지가 뜬 뒤 미끄러지듯 옮겨 가고, Windows 애니메이션 효과 설정과 무관하게 움직입니다. 출발을 늦춘 이유는 `docs/wpf-animation-skipped-while-ui-thread-busy.md`에 있습니다.
+- `DragReorder.cs` - 목록 항목을 손잡이로 끌어 같은 목록 안에서 순서를 바꿉니다. ItemsControl에 `DragReorder.MoveCommand`를, 항목 템플릿의 손잡이에 `DragReorder.IsHandle`을 붙입니다. 끄는 항목은 포인터를 따라오고 다른 항목은 비켜서며, 목록 끝을 넘지 못하므로 다른 목록으로는 옮겨지지 않습니다. 놓으면 명령에 `ReorderMove`를 넘기고, 컬렉션의 순서는 명령을 받은 ViewModel이 바꿉니다. 설계 선택과 함정은 `docs/wpf-drag-reorder-within-list.md`에 있습니다.
 - `FocusCue.cs` - 키보드 포커스 테두리를 마지막 조작에 맞춰 보이거나 숨깁니다. 창에 `FocusCue.IsEnabled`를 붙이면 키보드로 조작할 때만 테두리가 보이고 마우스로 누른 뒤에는 숨습니다. 원인과 판단 기준은 `docs/wpf-focus-visual-after-mouse-click.md`에 있습니다.
 
 ## 창 크기 정책
@@ -117,7 +119,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 뇌파 대역은 색이 아니라 `BrainwaveBand`의 그리스 문자로 구분합니다.
 - 주 동작(재생)은 채널 색이 아니라 가장 밝은 글자 색으로 칠합니다.
 - 숫자와 제목은 `Font.Display`(Bahnschrift), 설명과 목록은 `Font.Body`(Segoe UI)를 씁니다.
-- 아이콘은 Material Design 아이콘(PackIcon)을 사용합니다.
+- 아이콘은 Material Design 아이콘(PackIcon)을 사용합니다. 예외는 그 묶음에 없는 모양뿐이며, 지금은 프리셋 줄의 끌기 손잡이(⋮⋮)를 `Presets.xaml`이 PackIcon과 같은 24 단위 격자에 직접 그립니다.
 - 누르는 컨트롤의 `FocusVisualStyle`은 `ButtonStyles.xaml`의 `FocusVisual`이나 `FocusVisual.Pill`로 지정합니다. 이 두 스타일만 `FocusCue`를 따르므로, WPF 기본 점선 테두리를 쓰는 컨트롤은 마우스로 누른 뒤에도 테두리가 남을 수 있습니다.
 
 ## GitHub 리포지토리
@@ -157,6 +159,7 @@ BrainWavesWPF
 │  │  ├─ AppInfo.cs
 │  │  ├─ AssemblyInfo.cs
 │  │  ├─ Behaviors
+│  │  │  ├─ DragReorder.cs
 │  │  │  ├─ FocusCue.cs
 │  │  │  ├─ SlidingTabIndicator.cs
 │  │  │  ├─ TitleBar.cs
@@ -210,6 +213,7 @@ BrainWavesWPF
 │  ├─ releases
 │  │  └─ <버전>.md
 │  ├─ wpf-animation-skipped-while-ui-thread-busy.md
+│  ├─ wpf-drag-reorder-within-list.md
 │  ├─ wpf-focus-visual-after-mouse-click.md
 │  ├─ wpf-implicit-style-inside-control-template.md
 │  ├─ wpf-page-state-lost-on-frame-navigation.md

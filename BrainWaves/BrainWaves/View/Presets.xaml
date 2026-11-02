@@ -5,6 +5,7 @@
 즐겨찾기한 프리셋은 대역 묶음 위의 Favorites 묶음에 한 번 더 모아 보인다.
 한 줄 전체가 재생 버튼이다. 오른쪽 원형 아이콘은 지금 상태를 보여 줄 뿐 따로 눌리지 않고,
 왼쪽 별은 그 줄 안에 둔 별도 버튼으로 즐겨찾기를 켜고 끈다.
+맨 왼쪽 손잡이를 끌면 그 줄이 속한 묶음 안에서 순서가 바뀐다. 묶음끼리의 순서는 바뀌지 않고 Favorites는 늘 맨 위에 있다.
 -->
 <Page x:Class="BrainWaves.View.Presets"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -45,14 +46,64 @@
             </Style.Triggers>
         </Style>
 
+        <!--
+        끌고 있는 줄. 비켜서는 줄 위를 지나가므로 강조 면을 채워 아래 줄이 비쳐 보이지 않게 한다.
+        포인터가 목록 끝에서 줄 밖으로 나가도 놓을 때까지 같은 모양을 유지한다.
+        -->
+        <Style x:Key="PresetRow" TargetType="Button" BasedOn="{StaticResource Button.Row}">
+            <Style.Triggers>
+                <Trigger Property="behaviors:DragReorder.IsDragging" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Brush.SurfaceRaised}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--
+        손잡이 모양(⋮⋮). Material Design 아이콘 묶음에는 점 2열 3행 모양이 없어 직접 그린다.
+        PackIcon과 같은 24 단위 격자에 그려 크기와 굵기를 다른 아이콘과 맞춘다.
+        -->
+        <GeometryGroup x:Key="Icon.DragHandle">
+            <EllipseGeometry Center="9,6" RadiusX="2" RadiusY="2"/>
+            <EllipseGeometry Center="15,6" RadiusX="2" RadiusY="2"/>
+            <EllipseGeometry Center="9,12" RadiusX="2" RadiusY="2"/>
+            <EllipseGeometry Center="15,12" RadiusX="2" RadiusY="2"/>
+            <EllipseGeometry Center="9,18" RadiusX="2" RadiusY="2"/>
+            <EllipseGeometry Center="15,18" RadiusX="2" RadiusY="2"/>
+        </GeometryGroup>
+
+        <!--
+        순서를 바꾸는 손잡이. 평소에는 별처럼 흐리게 두고, 가리키면 한 단계, 끄는 동안에는 가장 밝게 칠한다.
+        위아래로만 옮길 수 있으므로 커서도 위아래 화살표로 보인다.
+        항목이 하나뿐인 묶음은 옮길 곳이 없어 손잡이를 숨긴다. 자리는 남겨 다른 묶음과 별, 이름의 시작선을 맞춘다.
+        -->
+        <Style x:Key="DragHandle" TargetType="Border">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="SizeNS"/>
+            <Setter Property="ToolTip" Value="Drag to reorder"/>
+            <Setter Property="TextElement.Foreground" Value="{StaticResource Brush.TextFaint}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="TextElement.Foreground" Value="{StaticResource Brush.TextMuted}"/>
+                </Trigger>
+                <Trigger Property="behaviors:DragReorder.IsDragging" Value="True">
+                    <Setter Property="TextElement.Foreground" Value="{StaticResource Brush.Text}"/>
+                    <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+                </Trigger>
+                <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="1">
+                    <Setter Property="Visibility" Value="Hidden"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <DataTemplate x:Key="PresetRowTemplate" DataType="{x:Type vm:PresetDataViewModel}">
-            <Button Style="{StaticResource Button.Row}"
+            <Button Style="{StaticResource PresetRow}"
                     Margin="0,1"
                     Command="{Binding DataContext.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                     CommandParameter="{Binding}"
                     AutomationProperties.Name="{Binding PresetName}">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -82,14 +133,31 @@
                     </Border>
 
                     <!--
+                    순서를 바꾸는 손잡이. 줄 버튼 안에 있지만 손잡이가 마우스 누름을 먼저 받아 붙잡으므로, 손잡이를 누르거나 끌어도 재생되지 않는다.
+                    누르는 영역은 줄 높이 전체로 두어 작은 점을 정확히 겨누지 않아도 잡힌다. 안쪽 여백 쪽으로 8px 당겨 이름이 밀리는 폭을 줄인다.
+                    -->
+                    <Border Grid.Column="0"
+                            Width="20"
+                            Margin="-8,0,0,0"
+                            Style="{StaticResource DragHandle}"
+                            behaviors:DragReorder.IsHandle="True">
+                        <!-- 손잡이 스타일이 정한 글자 색(TextElement.Foreground)을 물려받아 점을 칠한다. -->
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path Width="24" Height="24"
+                                  Data="{StaticResource Icon.DragHandle}"
+                                  Fill="{Binding (TextElement.Foreground), RelativeSource={RelativeSource Self}}"/>
+                        </Viewbox>
+                    </Border>
+
+                    <!--
                     즐겨찾기 별. 줄 버튼 안에 둔 별도 버튼이며, 안쪽 버튼이 마우스 누름을 먼저 처리하므로 별을 눌러도 재생되지 않는다.
                     켜진 별만 가장 밝은 글자 색으로 칠한다. 채도가 있는 색은 좌우 채널을 뜻하므로 쓰지 않는다.
-                    별 아이콘이 줄 가장자리와 이름 사이 가운데에 오도록 둔다. 누르는 영역(32px)이 아이콘(18px)보다 넓어
-                    버튼을 그대로 두면 왼쪽만 비어 보이므로, 버튼을 안쪽 여백 쪽으로 8px 당기고 이름과는 8px 띄운다.
+                    별 아이콘이 손잡이의 점과 이름 사이 가운데에 오도록 둔다. 누르는 영역(32px)이 아이콘(18px)보다 넓어
+                    그 차이가 아이콘 양옆의 여백이 되므로, 버튼은 손잡이에 바로 붙이고 이름과는 8px 띄운다.
                     -->
-                    <Button Grid.Column="0"
+                    <Button Grid.Column="1"
                             Style="{StaticResource FavoriteButton}"
-                            Margin="-8,0,8,0"
+                            Margin="0,0,8,0"
                             VerticalAlignment="Center"
                             Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                             CommandParameter="{Binding}">
@@ -108,7 +176,7 @@
                         </materialDesign:PackIcon>
                     </Button>
 
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
                         <TextBlock Style="{StaticResource Text.Title}" Text="{Binding PresetName}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                             <Ellipse Width="5" Height="5" VerticalAlignment="Center" Fill="{StaticResource Brush.ChannelLeft}"/>
@@ -126,7 +194,7 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Style="{StaticResource Text.Readout}"
                                    FontSize="22"
                                    Text="{Binding Resonance, StringFormat='{}{0:F2}'}"/>
@@ -137,7 +205,7 @@
                                    Text="Hz"/>
                     </StackPanel>
 
-                    <Border Grid.Column="3"
+                    <Border Grid.Column="4"
                             Width="32" Height="32"
                             Margin="14,0,0,0"
                             CornerRadius="16"
@@ -201,7 +269,8 @@
                     <Border Style="{StaticResource Card}" Padding="4">
                         <ItemsControl ItemsSource="{Binding Favorites}"
                                       ItemTemplate="{StaticResource PresetRowTemplate}"
-                                      Focusable="False"/>
+                                      Focusable="False"
+                                      behaviors:DragReorder.MoveCommand="{Binding MoveFavoriteCommand}"/>
                     </Border>
                 </StackPanel>
 
@@ -237,7 +306,8 @@
                                 <Border Style="{StaticResource Card}" Padding="4">
                                     <ItemsControl ItemsSource="{Binding Presets}"
                                                   ItemTemplate="{StaticResource PresetRowTemplate}"
-                                                  Focusable="False"/>
+                                                  Focusable="False"
+                                                  behaviors:DragReorder.MoveCommand="{Binding DataContext.MovePresetCommand, RelativeSource={RelativeSource AncestorType=Page}}"/>
                                 </Border>
                             </StackPanel>
                         </DataTemplate>

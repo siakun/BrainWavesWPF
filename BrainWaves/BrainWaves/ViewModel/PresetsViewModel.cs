@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using BrainWaves.Behaviors;
 using BrainWaves.Model;
 using BrainWaves.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -25,8 +26,8 @@ namespace BrainWaves.ViewModel
         public bool IsPresetListEmpty => PresetList.Count == 0;
 
         /// <summary>
-        /// 화면에 보이는 목록. 대역이 낮은 순으로 묶고, 묶음 안은 비트가 낮은 순으로 늘어놓는다.
-        /// 대역 순서가 곧 수면에서 각성으로 가는 순서라서, 사용자가 원하는 상태의 자리를 바로 찾는다.
+        /// 화면에 보이는 목록. 대역이 낮은 순으로 묶는다. 묶음 안의 순서는 사용자가 끌어서 정하고, 정하지 않았으면 비트가 낮은 순이다.
+        /// 대역 순서가 곧 수면에서 각성으로 가는 순서라서, 사용자가 원하는 상태의 자리를 바로 찾는다. 묶음끼리의 순서는 바꾸지 않는다.
         /// </summary>
         public IReadOnlyList<PresetGroup> PresetGroups { get; }
 
@@ -35,7 +36,7 @@ namespace BrainWaves.ViewModel
         /// </summary>
         // INTENT: 즐겨찾기를 대역 묶음에서 옮겨 오면 대역별 목록에 빈자리가 생겨, 대역을 보고 프리셋을 찾는 사용자가
         // 그 프리셋을 찾지 못한다. 같은 인스턴스를 두 곳에 보여 주므로 재생 표시와 별 표시는 두 곳이 함께 바뀐다.
-        // 순서는 대역 묶음과 같이 비트가 낮은 순으로 두어, 즐겨찾기한 순서를 기억하지 않아도 자리를 예상할 수 있게 한다.
+        // 순서는 사용자가 끌어서 정한다. 새로 별표한 프리셋은 맨 뒤에 붙어 이미 정해 둔 순서를 흐트러뜨리지 않는다.
         public ObservableCollection<PresetDataViewModel> Favorites { get; } = new();
 
         [ObservableProperty]
@@ -45,13 +46,15 @@ namespace BrainWaves.ViewModel
         {
             PresetList = PresetCatalog.All.Select(preset => new PresetDataViewModel(preset)).ToList();
 
+            // 묶음에 들어갈 프리셋과 그 순서는 ApplySettings가 저장된 순서로 채운다.
             PresetGroups = PresetList
-                .GroupBy(preset => preset.Band)
-                .OrderBy(group => group.Key.MinimumBeat)
-                .Select(group => new PresetGroup(group.Key, group.OrderBy(preset => preset.Resonance).ToList()))
+                .Select(preset => preset.Band)
+                .Distinct()
+                .OrderBy(band => band.MinimumBeat)
+                .Select(band => new PresetGroup(band))
                 .ToList();
 
-            ApplyFavorites();
+            ApplySettings();
 
             // 약한 구독으로 받아, 탭을 옮겨 이 ViewModel이 버려지면 함께 정리되게 한다.
             PropertyChangedEventManager.AddHandler(_audio, OnAudioChanged, string.Empty);
@@ -99,45 +102,130 @@ namespace BrainWaves.ViewModel
         {
             if (preset is null) return;
 
+            SaveSettings(settings => settings with
+            {
+                FavoritePresets = settings.FavoritePresets.Contains(preset.Id)
+                    ? settings.FavoritePresets.Where(id => id != preset.Id).ToArray()
+                    : settings.FavoritePresets.Append(preset.Id).ToArray()
+            });
+        }
+
+        [RelayCommand]
+        private void MoveFavorite(ReorderMove? move)
+        {
+            if (move?.Item is not PresetDataViewModel preset || !Favorites.Contains(preset)) return;
+
+            var ids = Moved(Favorites, preset, move.NewIndex).Select(favorite => favorite.Id).ToList();
+            SaveSettings(settings => settings with { FavoritePresets = KeepingUnknownIds(ids, settings.FavoritePresets) });
+        }
+
+        [RelayCommand]
+        private void MovePreset(ReorderMove? move)
+        {
+            if (move?.Item is not PresetDataViewModel preset) return;
+            var movedGroup = PresetGroups.FirstOrDefault(group => group.Presets.Contains(preset));
+            if (movedGroup is null) return;
+
+            // 모든 묶음의 지금 순서를 이어 저장한다. 앞서 다른 묶음에서 정해 둔 순서도 그대로 남는다.
+            var ids = PresetGroups
+                .SelectMany(group => group == movedGroup ? Moved(group.Presets, preset, move.NewIndex) : group.Presets.AsEnumerable())
+                .Select(item => item.Id)
+                .ToList();
+            SaveSettings(settings => settings with { PresetOrder = KeepingUnknownIds(ids, settings.PresetOrder) });
+        }
+
+        private void SaveSettings(Func<AppSettings, AppSettings> change)
+        {
             try
             {
-                _settings.Update(settings => settings with
-                {
-                    FavoritePresets = settings.FavoritePresets.Contains(preset.Id)
-                        ? settings.FavoritePresets.Where(id => id != preset.Id).ToArray()
-                        : settings.FavoritePresets.Append(preset.Id).ToArray()
-                });
+                _settings.Update(change);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                // 저장하지 못했으면 설정도 바뀌지 않았다. 아래에서 저장된 값으로 다시 그려 별 표시를 원래대로 돌린다.
-                Debug.WriteLine($"[PresetsViewModel] Failed to save favorites: {ex.Message}");
+                // 저장하지 못했으면 설정도 바뀌지 않았다. 아래에서 저장된 값으로 다시 그려 별 표시와 순서를 원래대로 돌린다.
+                Debug.WriteLine($"[PresetsViewModel] Failed to save settings: {ex.Message}");
             }
 
-            ApplyFavorites();
+            ApplySettings();
         }
 
         /// <summary>
-        /// 저장된 즐겨찾기로 별 표시와 즐겨찾기 묶음을 다시 만든다. 화면의 즐겨찾기 상태는 항상 설정 저장소에서 읽는다.
+        /// 저장된 설정으로 별 표시, 즐겨찾기 묶음, 묶음 안의 순서를 다시 맞춘다. 화면의 즐겨찾기와 순서는 항상 설정 저장소에서 읽는다.
         /// </summary>
-        private void ApplyFavorites()
+        private void ApplySettings()
         {
-            var favoriteIds = _settings.Current.FavoritePresets;
+            var settings = _settings.Current;
             foreach (var preset in PresetList)
-                preset.IsFavorite = favoriteIds.Contains(preset.Id);
+                preset.IsFavorite = settings.FavoritePresets.Contains(preset.Id);
 
-            Favorites.Clear();
-            foreach (var preset in PresetList.Where(preset => preset.IsFavorite).OrderBy(preset => preset.Resonance))
-                Favorites.Add(preset);
+            SyncTo(Favorites, InSavedOrder(PresetList.Where(preset => preset.IsFavorite), settings.FavoritePresets));
+            foreach (var group in PresetGroups)
+                SyncTo(group.Presets, InSavedOrder(PresetList.Where(preset => preset.Band == group.Band), settings.PresetOrder));
 
             HasFavorites = Favorites.Count > 0;
+        }
+
+        // 저장된 순서에 있는 프리셋을 그 순서대로 앞에 두고, 없는 프리셋은 비트가 낮은 순으로 뒤에 둔다.
+        private static List<PresetDataViewModel> InSavedOrder(IEnumerable<PresetDataViewModel> presets, IReadOnlyList<string> savedIds)
+        {
+            var rank = new Dictionary<string, int>();
+            for (var i = 0; i < savedIds.Count; i++)
+                rank.TryAdd(savedIds[i], i);
+
+            return presets
+                .OrderBy(preset => rank.TryGetValue(preset.Id, out var index) ? index : int.MaxValue)
+                .ThenBy(preset => preset.Resonance)
+                .ToList();
+        }
+
+        private static List<PresetDataViewModel> Moved(IEnumerable<PresetDataViewModel> presets, PresetDataViewModel preset, int newIndex)
+        {
+            var list = presets.ToList();
+            list.Remove(preset);
+            list.Insert(Math.Clamp(newIndex, 0, list.Count), preset);
+            return list;
+        }
+
+        // 화면에 보이는 순서 뒤에 이 버전이 모르는 Id를 그대로 붙인다. 설정 화면에서 예전 버전으로 되돌린 사용자가
+        // 순서를 한 번 바꾸는 것만으로, 새 버전에서 별표한 프리셋이나 정해 둔 순서가 사라지지 않게 한다.
+        private static string[] KeepingUnknownIds(IEnumerable<string> visibleIds, IReadOnlyList<string> savedIds)
+        {
+            var visible = visibleIds.ToList();
+            return visible.Concat(savedIds.Where(id => !visible.Contains(id))).Distinct().ToArray();
+        }
+
+        // 컬렉션을 원하는 순서로 맞춘다. 비우고 다시 채우지 않고 필요한 항목만 옮기고 넣고 빼서,
+        // 자리를 지킨 줄은 화면 요소를 다시 만들지 않는다. 별 하나를 눌렀다고 Favorites의 모든 줄이 새로 그려지지 않는다.
+        private static void SyncTo<T>(ObservableCollection<T> target, IReadOnlyList<T> desired)
+        {
+            for (var i = 0; i < desired.Count; i++)
+            {
+                var current = target.IndexOf(desired[i]);
+                if (current == i) continue;
+
+                if (current < 0) target.Insert(i, desired[i]);
+                else target.Move(current, i);
+            }
+
+            while (target.Count > desired.Count)
+                target.RemoveAt(target.Count - 1);
         }
     }
 
     /// <summary>
-    /// 같은 뇌파 대역에 속하는 프리셋 묶음
+    /// 같은 뇌파 대역에 속하는 프리셋 묶음. 묶음 안의 순서는 사용자가 끌어서 바꾼다.
     /// </summary>
-    public sealed record PresetGroup(BrainwaveBand Band, IReadOnlyList<PresetDataViewModel> Presets);
+    public sealed class PresetGroup
+    {
+        public PresetGroup(BrainwaveBand band)
+        {
+            Band = band;
+        }
+
+        public BrainwaveBand Band { get; }
+
+        public ObservableCollection<PresetDataViewModel> Presets { get; } = new();
+    }
 
     // PresetData를 확장하여 UI 관련 속성 추가
     public partial class PresetDataViewModel : PresetData

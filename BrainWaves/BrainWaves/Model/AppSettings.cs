@@ -17,9 +17,17 @@ namespace BrainWaves.Model
         public bool PrereleaseEnabled { get; init; }
 
         /// <summary>
-        /// 즐겨찾기에 넣은 프리셋의 Id(PresetData.Id). 순서에는 뜻이 없다.
+        /// 즐겨찾기에 넣은 프리셋의 Id(PresetData.Id). Favorites 묶음은 이 순서대로 보이고, 새로 넣은 프리셋은 맨 뒤에 붙는다.
         /// </summary>
         public IReadOnlyList<string> FavoritePresets { get; init; } = Array.Empty<string>();
+
+        /// <summary>
+        /// 사용자가 끌어서 정한 프리셋 순서(PresetData.Id). 대역 묶음 안에서 이 순서대로 보인다.
+        /// 여기 없는 프리셋은 같은 묶음의 뒤쪽에 비트가 낮은 순으로 놓인다.
+        /// </summary>
+        // INTENT: 묶음마다 따로 저장하지 않고 한 줄로 저장한다. 묶음은 대역 경계로 정해지므로, 경계가 바뀌어 프리셋이
+        // 다른 묶음으로 옮겨 가도 묶음별 목록처럼 갈 곳 없는 항목이 생기지 않고 새 묶음 안에서 순서를 이어 쓴다.
+        public IReadOnlyList<string> PresetOrder { get; init; } = Array.Empty<string>();
 
         /// <summary>
         /// 전체 음량. 0에서 100 사이의 백분율이다.

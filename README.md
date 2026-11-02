@@ -24,7 +24,7 @@
 
 - **대역별 프리셋**
 
-  Deep Sleep부터 Meditation, Focus, Cognitive tasks까지 프리셋이 뇌파 대역(δ, θ, α, β, γ)별로 묶여 있습니다. 자주 듣는 프리셋은 별을 눌러 목록 맨 위 Favorites에 모아 둡니다.
+  Deep Sleep부터 Meditation, Focus, Cognitive tasks까지 프리셋이 뇌파 대역(δ, θ, α, β, γ)별로 묶여 있습니다. 자주 듣는 프리셋은 별을 눌러 목록 맨 위 Favorites에 모아 둡니다. 줄 왼쪽의 손잡이(⋮⋮)를 끌면 같은 묶음 안에서 순서를 바꿀 수 있고, 바꾼 순서는 다음에 켤 때도 그대로입니다.
 
 - **직접 맞추기**
 

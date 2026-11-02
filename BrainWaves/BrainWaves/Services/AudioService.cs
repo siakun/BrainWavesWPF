@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Threading;
+using BrainWaves.Audio;
 using BrainWaves.Model;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -15,7 +16,7 @@ namespace BrainWaves.Services
     // INTENT: 페이지와 그 ViewModel은 탭을 옮길 때마다 새로 만들어진다. 소리 값을 페이지마다 두고 메시지로 맞추면
     // 재생하지 않는 동안 바꾼 값이 페이지와 함께 사라지고, 사본마다 값이 달라 어느 값으로 재생할지가 경우에 따라 바뀐다.
     // 그래서 값의 원본을 여기 하나로 두고 화면은 읽고 쓰기만 한다. 업데이트 상태를 UpdatesViewModel 하나에 두는 것과 같은 원칙이다.
-    // UI 스레드에서만 쓴다. 소리를 만드는 스레드와는 PlaySound가 잠금으로 값을 주고받는다.
+    // UI 스레드에서만 쓴다. 소리를 만드는 스레드에 값을 넘기고 그 값을 끊기지 않게 소리에 반영하는 일은 Audio 폴더의 모듈이 맡는다.
     public sealed class AudioService : ObservableObject
     {
         /// <summary>채널 주파수의 하한(Hz). 슬라이더와 0.01 Hz 버튼이 같은 범위를 쓴다.</summary>
@@ -32,7 +33,7 @@ namespace BrainWaves.Services
 
         public static AudioService Instance { get; } = new();
 
-        private readonly PlaySound _sound = new();
+        private readonly BinauralPlayer _sound = new();
         private readonly SettingsStore _settings = SettingsStore.Instance;
         private readonly DispatcherTimer _saveTimer;
 
@@ -127,9 +128,8 @@ namespace BrainWaves.Services
             }
             catch (Exception ex)
             {
-                // 출력 장치가 없거나 쓸 수 없으면 재생하지 않은 상태로 남긴다.
+                // 출력 장치가 없거나 쓸 수 없으면 재생하지 않은 상태로 남긴다. 열다 만 장치는 BinauralPlayer가 닫는다.
                 Debug.WriteLine($"[AudioService] Failed to start playback: {ex.Message}");
-                _sound.Stop();
             }
         }
 
@@ -144,6 +144,9 @@ namespace BrainWaves.Services
             Play();
         }
 
+        /// <summary>
+        /// 소리를 줄여 멈춘다. 화면은 바로 멈춘 상태가 되고, 소리는 짧게 줄어든 뒤 사라진다.
+        /// </summary>
         public void Stop()
         {
             _sound.Stop();
@@ -151,11 +154,12 @@ namespace BrainWaves.Services
         }
 
         /// <summary>
-        /// 앱을 끝낼 때 부른다. 소리를 멈춰 출력 장치를 놓고, 아직 저장하지 않은 전체 음량을 저장한다.
+        /// 앱을 끝낼 때 부른다. 소리가 다 줄어들 때까지 잠깐 기다려 출력 장치를 놓고, 아직 저장하지 않은 전체 음량을 저장한다.
         /// </summary>
         public void Shutdown()
         {
-            Stop();
+            _sound.Dispose();
+            IsPlaying = false;
             if (_saveTimer.IsEnabled) SaveMasterVolume();
         }
 

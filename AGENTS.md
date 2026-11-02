@@ -10,7 +10,8 @@ STACK: .NET 8, WPF, MVVM
 View/          : XAML UI (프레임 네비게이션)
 ViewModel/     : 화면 로직과 상태
 Model/         : 프리셋, 뇌파 대역, 사용자 설정
-Services/      : 오디오 재생, 설정 저장, 업데이트 연결
+Services/      : 소리 상태, 설정 저장, 업데이트 연결
+Audio/         : 사인파 생성과 출력 장치, 소리 값의 스무딩
 Converters/    : 값 변환기
 Behaviors/     : 첨부 속성으로 붙이는 UI 동작
 Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
@@ -56,6 +57,12 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `SettingsStore.cs` - 사용자 설정을 `%AppData%\BrainWaves\settings.json`에 읽고 저장합니다. 설정 값의 원본은 여기 하나입니다.
 - `AppUpdates.cs` - Siakun.AutoUpdate의 `UpdateService`에 이 앱의 저장소 주소와 설정 저장을 연결합니다.
 
+### Audio (`/Audio/`)
+소리에 닿는 값(주파수, 채널 음량, 전체 음량, 재생과 정지)은 모두 `SmoothedValue`를 거쳐 샘플마다 조금씩 옮겨 갑니다. 값을 한 번에 바꾸면 파형이 계단처럼 꺾여 "틱" 소리가 나기 때문입니다. 소리 제어를 새로 더할 때도 목표값만 넘기고 이 경로로 반영합니다. 원인과 판단 근거는 `docs/audio-zipper-noise-and-stop-click.md`에 있습니다.
+- `SmoothedValue.cs` - 목표값을 향해 정해진 시간에 걸쳐 샘플마다 일정한 폭으로 옮겨 가는 값
+- `BinauralBeatProvider.cs` - NAudio의 `ISampleProvider`. 좌우 채널에 서로 다른 주파수의 사인파를 만듭니다. 값은 목표값으로만 받고, 소리를 끝까지 줄이면 스트림을 끝냅니다.
+- `BinauralPlayer.cs` - 출력 장치(`WaveOutEvent`)의 수명. 재생은 소리를 키우며 시작하고, 정지는 소리를 줄인 뒤 장치가 스스로 멈추면 닫습니다. 앱을 끝낼 때는 소리가 다 줄어들 때까지 잠깐 기다립니다.
+
 ### Model (`/Model/`)
 - `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋. 즐겨찾기를 저장할 때는 표시 이름이 아니라 바꾸지 않는 `Id`를 씁니다.
 - `PresetCatalog.cs` - 앱에 들어 있는 프리셋 목록
@@ -90,9 +97,6 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 창 크기를 사람이 고른 값으로 두면 폰트, DPI 배율, 요소 추가로 콘텐츠 요구 높이가 바뀔 때 조용히 어긋나 스크롤바가 생긴다. 그래서 `MainWindow`는 높이를 지정하지 않고 `WindowAutoFit`이 측정한 값을 쓴다. 각 페이지의 ScrollViewer는 지우지 않고 안전망으로 남긴다. 콘텐츠 요구가 화면 작업 영역을 넘어 창을 더 키울 수 없을 때 요소가 잘리지 않게 받아내는 역할이다.
 
 새 페이지를 추가할 때는 선언 없이 두면 콘텐츠가 모두 보이도록 창이 맞춰진다. 항목 수에 따라 길어지는 페이지만 `FitsContent="False"`를 붙인다.
-
-### 핵심 기능
-- `PlaySound.cs` - NAudio로 좌우 채널에 서로 다른 주파수의 사인파를 실시간으로 생성해 재생
 
 ## 자동 업데이트
 배포는 Velopack 설치 패키지로 하고, 업데이트 확인과 다운로드, 버전 전환, 종료 시 적용은 Siakun.AutoUpdate가 맡습니다. 앱은 다음만 연결합니다.
@@ -158,6 +162,10 @@ BrainWavesWPF
 │  │  ├─ App.xaml.cs
 │  │  ├─ AppInfo.cs
 │  │  ├─ AssemblyInfo.cs
+│  │  ├─ Audio
+│  │  │  ├─ BinauralBeatProvider.cs
+│  │  │  ├─ BinauralPlayer.cs
+│  │  │  └─ SmoothedValue.cs
 │  │  ├─ Behaviors
 │  │  │  ├─ DragReorder.cs
 │  │  │  ├─ FocusCue.cs
@@ -172,7 +180,6 @@ BrainWavesWPF
 │  │  │  ├─ BrainwaveBand.cs
 │  │  │  ├─ PresetCatalog.cs
 │  │  │  └─ PresetData.cs
-│  │  ├─ PlaySound.cs
 │  │  ├─ Program.cs
 │  │  ├─ Resources
 │  │  │  ├─ Animations
@@ -212,6 +219,7 @@ BrainWavesWPF
 ├─ docs
 │  ├─ releases
 │  │  └─ <버전>.md
+│  ├─ audio-zipper-noise-and-stop-click.md
 │  ├─ wpf-animation-skipped-while-ui-thread-busy.md
 │  ├─ wpf-drag-reorder-within-list.md
 │  ├─ wpf-focus-visual-after-mouse-click.md

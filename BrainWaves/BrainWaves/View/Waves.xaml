@@ -12,6 +12,7 @@
       xmlns:vm="clr-namespace:BrainWaves.ViewModel"
       xmlns:views="clr-namespace:BrainWaves.View"
       xmlns:services="clr-namespace:BrainWaves.Services"
+      xmlns:loc="clr-namespace:BrainWaves.Localization"
       mc:Ignorable="d"
       d:DesignHeight="650" d:DesignWidth="450"
       Title="Waves">
@@ -224,7 +225,7 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <TextBlock Style="{StaticResource Text.Label}" Text="BINAURAL BEAT"/>
+                            <TextBlock Style="{StaticResource Text.Label}" Text="{loc:Text Waves.Beat}"/>
 
                             <StackPanel Orientation="Horizontal" Margin="-3,2,0,0">
                                 <TextBlock Style="{StaticResource Text.Readout}"
@@ -246,12 +247,12 @@
                                 <TextBlock Style="{StaticResource Text.Title}"
                                            Margin="10,0,0,0"
                                            VerticalAlignment="Center"
-                                           Text="{Binding Audio.Band.Name}"/>
+                                           Text="{loc:Text Source={Binding Audio.Band.Id}, KeyFormat='Band.{0}.Name'}"/>
                                 <TextBlock Style="{StaticResource Text.Caption}"
                                            FontSize="13"
                                            Margin="10,0,0,0"
                                            VerticalAlignment="Center"
-                                           Text="{Binding Audio.Band.Description}"/>
+                                           Text="{loc:Text Source={Binding Audio.Band.Id}, KeyFormat='Band.{0}.Description'}"/>
                             </StackPanel>
                         </StackPanel>
 
@@ -260,8 +261,8 @@
                                 VerticalAlignment="Center"
                                 Margin="16,8,0,0"
                                 Command="{Binding TogglePlayCommand}"
-                                ToolTip="{Binding Audio.IsPlaying, Converter={StaticResource BoolToPlayStopTextConverter}}"
-                                AutomationProperties.Name="{Binding Audio.IsPlaying, Converter={StaticResource BoolToPlayStopTextConverter}}">
+                                ToolTip="{loc:Text Source={Binding Audio.IsPlaying}, KeyFormat='Playback.{0}'}"
+                                AutomationProperties.Name="{loc:Text Source={Binding Audio.IsPlaying}, KeyFormat='Playback.{0}'}">
                             <materialDesign:PackIcon Width="28" Height="28">
                                 <materialDesign:PackIcon.Style>
                                     <Style TargetType="materialDesign:PackIcon">
@@ -296,7 +297,7 @@
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                                        Style="{StaticResource Text.Label}"
-                                       Text="MASTER VOLUME"/>
+                                       Text="{loc:Text Waves.MasterVolume.Label}"/>
                             <TextBlock Grid.Row="0" Grid.Column="1"
                                        Style="{StaticResource Text.Readout}"
                                        HorizontalAlignment="Right"
@@ -313,7 +314,7 @@
                             <Slider Grid.Row="1" Grid.Column="1"
                                     Maximum="{x:Static services:AudioService.MaxLevel}"
                                     Value="{Binding Audio.MasterVolume, Mode=TwoWay}"
-                                    AutomationProperties.Name="Master volume"/>
+                                    AutomationProperties.Name="{loc:Text Waves.MasterVolume}"/>
                         </Grid>
                     </Border>
 
@@ -326,7 +327,7 @@
                         </Grid.ColumnDefinitions>
 
                         <views:ChannelCard Grid.Column="0"
-                                           Title="LEFT"
+                                           Title="{loc:Text Waves.Left}"
                                            ChannelBrush="{StaticResource Brush.ChannelLeft}"
                                            Frequency="{Binding Audio.LeftFrequency}"
                                            Gain="{Binding Audio.LeftGain}"
@@ -334,7 +335,7 @@
                                            IncreaseCommand="{Binding IncreaseLeftFrequencyCommand}"/>
 
                         <views:ChannelCard Grid.Column="2"
-                                           Title="RIGHT"
+                                           Title="{loc:Text Waves.Right}"
                                            ChannelBrush="{StaticResource Brush.ChannelRight}"
                                            Frequency="{Binding Audio.RightFrequency}"
                                            Gain="{Binding Audio.RightGain}"

@@ -12,7 +12,7 @@ ViewModel/     : 화면 로직과 상태
 Model/         : 프리셋, 뇌파 대역, 사용자 설정
 Services/      : 소리 상태, 설정 저장, 업데이트 연결
 Audio/         : 사인파 생성과 출력 장치, 소리 값의 스무딩
-Converters/    : 값 변환기
+Localization/  : 화면 문자열과 언어 전환
 Behaviors/     : 첨부 속성으로 붙이는 UI 동작
 Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 
@@ -36,6 +36,7 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - 별표한 프리셋을 목록 맨 위 Favorites에 모아 표시
 - 손잡이를 끌어 Favorites와 각 대역 묶음 안에서 프리셋 순서를 바꾸고 다음 실행에도 유지. 묶음끼리의 순서는 고정
 - 창을 닫으면 앱을 끝내지 않고 알림 영역(트레이)으로 숨겨 소리를 이어 재생. 기본값은 켜짐이고 설정에서 끔
+- 화면 언어(시스템 설정 따름, English, 한국어)를 설정에서 고르면 다시 시작하지 않고 바로 바뀜
 - GitHub 릴리스를 통한 자동 업데이트와 버전 선택
 
 ## Project Architecture
@@ -66,27 +67,31 @@ Resources/     : 색, 글꼴, 컨트롤 스타일, 앱 아이콘
 - `BinauralPlayer.cs` - 출력 장치(`WaveOutEvent`)의 수명. 재생은 소리를 키우며 시작하고, 정지는 소리를 줄인 뒤 장치가 스스로 멈추면 닫습니다. 앱을 끝낼 때는 소리가 다 줄어들 때까지 잠깐 기다립니다.
 
 ### Model (`/Model/`)
-- `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋. 즐겨찾기를 저장할 때는 표시 이름이 아니라 바꾸지 않는 `Id`를 씁니다.
+- `PresetData.cs` - 좌우 주파수와 그 차이(비트)로 정해지는 프리셋. 즐겨찾기를 저장하고 이름을 문자열 리소스(`Preset.<Id>`)에서 찾을 때 바꾸지 않는 `Id`를 씁니다.
 - `PresetCatalog.cs` - 앱에 들어 있는 프리셋 목록
-- `BrainwaveBand.cs` - 비트가 속하는 뇌파 대역의 경계, 기호, 설명. 대역 판정은 이 표 한 곳에서만 합니다.
-- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기와 그 순서, 대역 묶음 안의 프리셋 순서, 전체 음량, 창을 닫을 때 트레이로 숨길지 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
+- `BrainwaveBand.cs` - 비트가 속하는 뇌파 대역의 경계와 기호. 대역 판정은 이 표 한 곳에서만 합니다. 이름, 설명, 범위 문구는 문자열 리소스(`Band.<Id>.*`)에 있습니다.
+- `AppSettings.cs` - 자동 업데이트, 베타 수신, 즐겨찾기와 그 순서, 대역 묶음 안의 프리셋 순서, 전체 음량, 창을 닫을 때 트레이로 숨길지, 화면 언어 같은 사용자 설정. 이 버전이 모르는 항목도 저장할 때 지우지 않습니다.
 
 ### View (`/View/`)
 - `MainWindow.xaml` - 프레임, 업데이트 알림 막대, 하단 탭, 트레이 아이콘과 그 메뉴. 트레이로 숨기는 설정이 켜져 있으면 닫을 때 창을 숨기고, 앱 전체를 끝낼 때(트레이 메뉴의 종료, 업데이트 재시작)는 그대로 닫힙니다.
 - `Waves.xaml` - 지금 들리는 비트와 재생 버튼, 전체 음량, 좌우 채널 조절
 - `ChannelCard.xaml` - 한 채널의 주파수와 음량 카드. Waves가 좌우에 하나씩 놓습니다.
 - `Presets.xaml` - 사전 구성된 주파수 조합을 뇌파 대역별로 묶은 목록. 별표한 프리셋은 맨 위 Favorites에 한 번 더 보입니다. 줄 왼쪽 손잡이를 끌면 그 줄이 속한 묶음 안에서 순서가 바뀝니다.
-- `Settings.xaml` - 트레이로 숨기기 옵션, 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
+- `Settings.xaml` - 언어 선택, 트레이로 숨기기 옵션, 업데이트 설정과 버전 선택, 앱 소개, 오픈소스 라이브러리, GitHub 링크
 
 ### ViewModel (`/ViewModel/`)
 - `MainViewModel.cs` - 하단 탭이 고른 페이지, 업데이트 알림 막대가 보는 상태, 트레이 아이콘의 표시 여부와 트레이 메뉴의 재생 전환
 - `WavesViewModel.cs` - 주파수를 0.01 Hz씩 옮기는 버튼과 재생 버튼. 소리 값은 들고 있지 않고 `Audio`(AudioService)를 노출합니다.
 - `PresetsViewModel.cs` - 프리셋 목록 관리 및 선택 시 재생 토글 기능. PresetDataViewModel로 UI 상태 확장. 재생 표시는 `AudioService`의 지금 소리에서, 즐겨찾기 상태와 묶음 안의 순서는 `SettingsStore`에 저장된 값에서 매번 다시 계산합니다. 끌어서 옮긴 순서는 먼저 저장한 뒤 저장된 값으로 화면을 맞춥니다.
-- `SettingsViewModel.cs` - 설정 화면의 링크와 오픈소스 목록
-- `UpdatesViewModel.cs` - 업데이트 상태와 조작. 앱 전체에 하나만 두고 메인 창의 알림 막대와 설정 화면이 함께 봅니다.
+- `SettingsViewModel.cs` - 설정 화면의 언어와 트레이 옵션, 링크와 오픈소스 목록. 두 옵션의 원본은 `SettingsStore`이고 이 화면은 읽고 쓰기만 합니다.
+- `UpdatesViewModel.cs` - 업데이트 상태와 조작. 앱 전체에 하나만 두고 메인 창의 알림 막대와 설정 화면이 함께 봅니다. 상태 문장은 `LocalizedText`로 둡니다.
 
-### Converters (`/Converters/`)
-- `BoolToPlayStopTextConverter.cs` - 재생 상태에 따른 텍스트 변환
+### Localization (`/Localization/`)
+화면에 보이는 문자열은 XAML이나 코드에 직접 적지 않고 `Strings.resx`에 키로 넣습니다. 영어가 기본이고, 언어별 파일(`Strings.ko.resx`)에 없는 키는 영어로 보입니다. 새 문자열은 먼저 `Strings.resx`에 넣고, 번역이 다른 언어 파일에 같은 키로 넣습니다. 앱 이름(BrainWaves), 숫자와 단위, 그리스 문자는 번역하지 않습니다.
+- `Localizer.cs` - 지금 언어와 문자열 조회. 언어 설정의 원본은 `SettingsStore`이고, 이 객체가 저장소의 변경을 받아 언어를 바꿉니다. 고를 수 있는 언어 목록도 여기 있습니다.
+- `TextExtension.cs` - XAML의 `{loc:Text 키}`. 지금 언어에 묶인 바인딩이라 언어를 바꾸면 화면 문자열이 바로 다시 계산됩니다. `Arg`로 {0} 자리에 값을 넣고, `Source`와 `KeyFormat`으로 Id에서 키를 만들며(`Preset.{0}`), `Source`가 `LocalizedText`면 그 문장을 만듭니다.
+- `LocalizedText.cs` - ViewModel이 들고 있는 "키와 인자". 완성된 문자열로 들고 있으면 언어를 바꿔도 옛 언어로 남으므로, 상태를 알리는 문장은 이 형태로 둡니다.
+- `Strings.resx`, `Strings.ko.resx` - 영어와 한국어 문자열
 
 ### Behaviors (`/Behaviors/`)
 - `WindowAutoFit.cs` - 창의 최소 크기와 시작 크기를 콘텐츠가 요구하는 크기에서 도출한다. 창에 `WindowAutoFit.IsEnabled`를 붙이면 페이지를 띄울 때마다 다시 측정한다. 목록처럼 항목 수만큼 길어지는 페이지는 `WindowAutoFit.FitsContent="False"`로 선언해 창이 그 길이를 따라가지 않게 한다. 측정은 창 크기를 바꾸지 않고 하며, 최대화나 최소화한 동안에는 맞추지 않고 보통 상태로 돌아올 때 맞춘다. `SizeToContent`를 바꿔 재지 않는 이유는 `docs/wpf-window-flicker-from-sizetocontent-measure.md`에 있다.
@@ -175,8 +180,12 @@ BrainWavesWPF
 │  │  │  ├─ TitleBar.cs
 │  │  │  └─ WindowAutoFit.cs
 │  │  ├─ BrainWaves.csproj
-│  │  ├─ Converters
-│  │  │  └─ BoolToPlayStopTextConverter.cs
+│  │  ├─ Localization
+│  │  │  ├─ LocalizedText.cs
+│  │  │  ├─ Localizer.cs
+│  │  │  ├─ Strings.ko.resx
+│  │  │  ├─ Strings.resx
+│  │  │  └─ TextExtension.cs
 │  │  ├─ Model
 │  │  │  ├─ AppSettings.cs
 │  │  │  ├─ BrainwaveBand.cs

@@ -7,6 +7,8 @@
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ApplicationIcon>Resources\BrainWaves.ico</ApplicationIcon>
+    <!-- Localization/Strings.resx가 영어다. 영어를 고르면 언어별 리소스를 찾지 않고 이 파일을 바로 쓴다. -->
+    <NeutralLanguage>en</NeutralLanguage>
 
     <!-- INTENT: 버전은 여기 한 곳에서만 정한다. 어셈블리 버전과 파일 버전은 SDK가 이 값에서 도출하고,
          릴리스 워크플로는 태그가 이 값과 다르면 배포를 멈춘다. -->

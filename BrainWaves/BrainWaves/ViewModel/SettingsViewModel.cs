@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
+using BrainWaves.Localization;
+using BrainWaves.Model;
 using BrainWaves.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,24 +20,40 @@ namespace BrainWaves.ViewModel
 
         public UpdatesViewModel Updates { get; } = UpdatesViewModel.Instance;
 
+        public IReadOnlyList<LanguageOption> Languages => Localizer.Languages;
+
+        /// <summary>
+        /// 고른 화면 언어. 값의 원본은 설정 저장소이고, Localizer가 저장소의 변경을 받아 화면 언어를 바꾼다.
+        /// </summary>
+        public LanguageOption SelectedLanguage
+        {
+            get => Languages.FirstOrDefault(option => option.Code == _settings.Current.Language) ?? Languages[0];
+            set
+            {
+                if (value is not null) SaveSetting(settings => settings with { Language = value.Code });
+            }
+        }
+
         /// <summary>
         /// 창을 닫으면 트레이로 숨길지 여부. 값의 원본은 설정 저장소이고 이 화면은 읽고 쓰기만 한다.
         /// </summary>
         public bool CloseToTray
         {
             get => _settings.Current.CloseToTray;
-            set
+            set => SaveSetting(settings => settings with { CloseToTray = value });
+        }
+
+        private void SaveSetting(Func<AppSettings, AppSettings> change, [CallerMemberName] string? property = null)
+        {
+            try
             {
-                try
-                {
-                    _settings.Update(settings => settings with { CloseToTray = value });
-                }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-                {
-                    // 저장하지 못했으면 스위치를 저장된 값으로 되돌린다.
-                    Debug.WriteLine($"[SettingsViewModel] Failed to save close-to-tray: {ex.Message}");
-                    OnPropertyChanged();
-                }
+                _settings.Update(change);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // 저장하지 못했으면 화면의 값을 저장된 값으로 되돌린다.
+                Debug.WriteLine($"[SettingsViewModel] Failed to save {property}: {ex.Message}");
+                OnPropertyChanged(property);
             }
         }
 
@@ -72,7 +92,8 @@ namespace BrainWaves.ViewModel
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Couldn't open {url}. {ex.Message}", "BrainWaves", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Localizer.Instance.Format("Settings.OpenLinkFailed", url, ex.Message),
+                    "BrainWaves", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

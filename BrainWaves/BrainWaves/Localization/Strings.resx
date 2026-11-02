@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+화면에 보이는 문자열의 기본(영어) 원본. 키는 "화면.항목" 꼴로 짓는다.
+다른 언어 파일(Strings.<언어>.resx)에 없는 키는 이 파일의 문자열로 보이므로, 새 문자열은 먼저 여기에 넣는다.
+Preset.<Id>와 Band.<Id>.*의 Id는 모델(PresetCatalog, BrainwaveBand)의 Id와 같아야 한다.
+-->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Nav.Waves" xml:space="preserve"><value>Waves</value></data>
+  <data name="Nav.Waves.Label" xml:space="preserve"><value>WAVES</value></data>
+  <data name="Nav.Presets" xml:space="preserve"><value>Presets</value></data>
+  <data name="Nav.Presets.Label" xml:space="preserve"><value>PRESETS</value></data>
+  <data name="Nav.Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Nav.Settings.Label" xml:space="preserve"><value>SETTINGS</value></data>
+
+  <data name="Playback.False" xml:space="preserve"><value>Play</value><comment>재생하지 않을 때 재생 버튼이 할 일</comment></data>
+  <data name="Playback.True" xml:space="preserve"><value>Stop</value><comment>재생 중일 때 재생 버튼이 할 일</comment></data>
+
+  <data name="Tray.Open" xml:space="preserve"><value>Open BrainWaves</value></data>
+  <data name="Tray.Quit" xml:space="preserve"><value>Quit BrainWaves</value></data>
+
+  <data name="UpdateBar.Ready" xml:space="preserve"><value>Version {0} is ready</value></data>
+  <data name="UpdateBar.ReadyCaption" xml:space="preserve"><value>It installs when you close BrainWaves.</value></data>
+  <data name="UpdateBar.RestartNow" xml:space="preserve"><value>Restart now</value></data>
+  <data name="Updates.DownloadingVersion" xml:space="preserve"><value>Downloading version {0}</value></data>
+
+  <data name="Waves.Beat" xml:space="preserve"><value>BINAURAL BEAT</value></data>
+  <data name="Waves.MasterVolume.Label" xml:space="preserve"><value>MASTER VOLUME</value></data>
+  <data name="Waves.MasterVolume" xml:space="preserve"><value>Master volume</value></data>
+  <data name="Waves.Left" xml:space="preserve"><value>LEFT</value></data>
+  <data name="Waves.Right" xml:space="preserve"><value>RIGHT</value></data>
+
+  <data name="Channel.Lower.ToolTip" xml:space="preserve"><value>Lower by 0.01 Hz. Hold to keep lowering.</value></data>
+  <data name="Channel.Raise.ToolTip" xml:space="preserve"><value>Raise by 0.01 Hz. Hold to keep raising.</value></data>
+  <data name="Channel.Lower.Name" xml:space="preserve"><value>Lower {0} frequency</value></data>
+  <data name="Channel.Raise.Name" xml:space="preserve"><value>Raise {0} frequency</value></data>
+  <data name="Channel.Frequency.Name" xml:space="preserve"><value>{0} frequency</value></data>
+  <data name="Channel.Volume.Name" xml:space="preserve"><value>{0} volume</value></data>
+
+  <data name="Presets.Title" xml:space="preserve"><value>Presets</value></data>
+  <data name="Presets.Caption" xml:space="preserve"><value>Click a preset to play it. Click it again to stop. Star the ones you use most to keep them at the top.</value></data>
+  <data name="Presets.Favorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="Presets.Empty" xml:space="preserve"><value>No presets yet.</value></data>
+  <data name="Presets.AddToFavorites" xml:space="preserve"><value>Add to favorites</value></data>
+  <data name="Presets.RemoveFromFavorites" xml:space="preserve"><value>Remove from favorites</value></data>
+  <data name="Presets.AddToFavorites.Name" xml:space="preserve"><value>Add {0} to favorites</value></data>
+  <data name="Presets.RemoveFromFavorites.Name" xml:space="preserve"><value>Remove {0} from favorites</value></data>
+  <data name="Presets.DragToReorder" xml:space="preserve"><value>Drag to reorder</value></data>
+
+  <data name="Preset.visualization" xml:space="preserve"><value>Visualization</value></data>
+  <data name="Preset.creative" xml:space="preserve"><value>Creative</value></data>
+  <data name="Preset.focus" xml:space="preserve"><value>Focus</value></data>
+  <data name="Preset.work" xml:space="preserve"><value>Work</value></data>
+  <data name="Preset.concentrate" xml:space="preserve"><value>Concentrate</value></data>
+  <data name="Preset.healing" xml:space="preserve"><value>Healing</value></data>
+  <data name="Preset.sleep" xml:space="preserve"><value>Sleep</value></data>
+  <data name="Preset.deep-sleep" xml:space="preserve"><value>Deep Sleep</value></data>
+  <data name="Preset.perception" xml:space="preserve"><value>Perception</value></data>
+  <data name="Preset.cognitive-tasks" xml:space="preserve"><value>Cognitive tasks</value></data>
+  <data name="Preset.infra-low" xml:space="preserve"><value>InfraLow</value></data>
+  <data name="Preset.meditation" xml:space="preserve"><value>Meditation</value></data>
+  <data name="Preset.relax" xml:space="preserve"><value>Relax</value></data>
+
+  <data name="Band.above-gamma.Name" xml:space="preserve"><value>Above gamma</value></data>
+  <data name="Band.above-gamma.Description" xml:space="preserve"><value>Beyond the gamma band</value></data>
+  <data name="Band.above-gamma.Range" xml:space="preserve"><value>over 42 Hz</value></data>
+  <data name="Band.gamma.Name" xml:space="preserve"><value>Gamma</value></data>
+  <data name="Band.gamma.Description" xml:space="preserve"><value>High focus</value></data>
+  <data name="Band.gamma.Range" xml:space="preserve"><value>38-42 Hz</value></data>
+  <data name="Band.beta.Name" xml:space="preserve"><value>Beta</value></data>
+  <data name="Band.beta.Description" xml:space="preserve"><value>Active thinking</value></data>
+  <data name="Band.beta.Range" xml:space="preserve"><value>12-38 Hz</value></data>
+  <data name="Band.alpha.Name" xml:space="preserve"><value>Alpha</value></data>
+  <data name="Band.alpha.Description" xml:space="preserve"><value>Relaxation</value></data>
+  <data name="Band.alpha.Range" xml:space="preserve"><value>8-12 Hz</value></data>
+  <data name="Band.theta.Name" xml:space="preserve"><value>Theta</value></data>
+  <data name="Band.theta.Description" xml:space="preserve"><value>Meditation</value></data>
+  <data name="Band.theta.Range" xml:space="preserve"><value>3-8 Hz</value></data>
+  <data name="Band.delta.Name" xml:space="preserve"><value>Delta</value></data>
+  <data name="Band.delta.Description" xml:space="preserve"><value>Sleep</value></data>
+  <data name="Band.delta.Range" xml:space="preserve"><value>0.5-3 Hz</value></data>
+  <data name="Band.infra-low.Name" xml:space="preserve"><value>Infra-Low</value></data>
+  <data name="Band.infra-low.Description" xml:space="preserve"><value>Deep healing</value></data>
+  <data name="Band.infra-low.Range" xml:space="preserve"><value>under 0.5 Hz</value></data>
+  <data name="Band.mono.Name" xml:space="preserve"><value>Mono</value></data>
+  <data name="Band.mono.Description" xml:space="preserve"><value>No beat</value></data>
+  <data name="Band.mono.Range" xml:space="preserve"><value>0 Hz</value></data>
+
+  <data name="Settings.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings.General" xml:space="preserve"><value>GENERAL</value></data>
+  <data name="Settings.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Language.System" xml:space="preserve"><value>System default</value></data>
+  <data name="Language.en" xml:space="preserve"><value>English</value><comment>언어 이름은 그 언어로 적는다. 번역하지 않는다.</comment></data>
+  <data name="Language.ko" xml:space="preserve"><value>한국어</value><comment>언어 이름은 그 언어로 적는다. 번역하지 않는다.</comment></data>
+  <data name="Settings.Tray" xml:space="preserve"><value>Keep running in the tray</value></data>
+  <data name="Settings.Tray.Caption" xml:space="preserve"><value>Closing the window hides BrainWaves to the system tray, and the sound keeps playing. To quit, right-click the tray icon.</value></data>
+  <data name="Settings.Updates" xml:space="preserve"><value>UPDATES</value></data>
+  <data name="Settings.CheckNow" xml:space="preserve"><value>Check now</value></data>
+  <data name="Settings.AutoUpdate" xml:space="preserve"><value>Automatic updates</value></data>
+  <data name="Settings.AutoUpdate.Caption" xml:space="preserve"><value>Download new versions in the background and install them when you close BrainWaves.</value></data>
+  <data name="Settings.Beta" xml:space="preserve"><value>Beta versions</value></data>
+  <data name="Settings.Beta.Caption" xml:space="preserve"><value>Include pre-release versions in updates and in the version list.</value></data>
+  <data name="Settings.OtherVersion" xml:space="preserve"><value>Install another version</value></data>
+  <data name="Settings.OtherVersion.Caption" xml:space="preserve"><value>Picking any version other than the newest one turns off automatic updates.</value></data>
+  <data name="Settings.Version" xml:space="preserve"><value>Version</value></data>
+  <data name="Settings.Install" xml:space="preserve"><value>Install</value></data>
+  <data name="Settings.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Version.Installed" xml:space="preserve"><value>installed</value></data>
+  <data name="Version.Beta" xml:space="preserve"><value>beta</value></data>
+  <data name="Settings.About" xml:space="preserve"><value>ABOUT</value></data>
+  <data name="About.Body" xml:space="preserve"><value>BrainWaves plays a slightly different tone in each ear. Your brain hears the difference between them as a slow pulse, the binaural beat.</value></data>
+  <data name="About.Headphones" xml:space="preserve"><value>Use stereo headphones. Speakers mix the two tones before they reach your ears.</value></data>
+  <data name="About.Source" xml:space="preserve"><value>Source code on GitHub</value></data>
+  <data name="About.Report" xml:space="preserve"><value>Report a problem</value></data>
+  <data name="Settings.OpenSource" xml:space="preserve"><value>OPEN SOURCE</value></data>
+  <data name="Settings.OpenLinkFailed" xml:space="preserve"><value>Couldn't open {0}. {1}</value></data>
+
+  <data name="Updates.DevBuild" xml:space="preserve"><value>This is a development build. Updates work in the installed app.</value></data>
+  <data name="Updates.Checking" xml:space="preserve"><value>Checking for updates...</value></data>
+  <data name="Updates.DownloadingStatus" xml:space="preserve"><value>Downloading version {0}...</value></data>
+  <data name="Updates.Restarting" xml:space="preserve"><value>Version {0} is ready. BrainWaves is restarting to install it.</value></data>
+  <data name="Updates.Canceled" xml:space="preserve"><value>Installation canceled.</value></data>
+  <data name="Updates.InstallFailed" xml:space="preserve"><value>Couldn't install version {0}. {1}</value></data>
+  <data name="Updates.LoadingVersions" xml:space="preserve"><value>Loading versions...</value></data>
+  <data name="Updates.NoVersions" xml:space="preserve"><value>No versions have been published yet.</value></data>
+  <data name="Updates.VersionsFailed" xml:space="preserve"><value>Couldn't load the version list from GitHub.</value></data>
+  <data name="Updates.ReadyOnClose" xml:space="preserve"><value>Version {0} is ready. It installs when you close BrainWaves.</value></data>
+  <data name="Updates.Unreachable" xml:space="preserve"><value>Couldn't reach GitHub. Check your connection and try again.</value></data>
+  <data name="Updates.NoneAvailable" xml:space="preserve"><value>No updates are available.</value></data>
+  <data name="Updates.LatestIsDev" xml:space="preserve"><value>The latest version is {0}. Updates work in the installed app.</value></data>
+  <data name="Updates.UpToDate" xml:space="preserve"><value>You're on the latest version.</value></data>
+  <data name="Updates.AvailablePick" xml:space="preserve"><value>Version {0} is available. Pick it below to install it.</value></data>
+  <data name="Updates.AvailableNotDownloaded" xml:space="preserve"><value>Version {0} is available, but the download didn't finish. Try again later.</value></data>
+  <data name="Updates.SaveFailed" xml:space="preserve"><value>Couldn't save the setting. {0}</value></data>
+</root>

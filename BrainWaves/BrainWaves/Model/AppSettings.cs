@@ -39,6 +39,11 @@ namespace BrainWaves.Model
         /// </summary>
         public bool CloseToTray { get; init; } = true;
 
+        /// <summary>
+        /// 화면 언어의 코드(en, ko). 비어 있으면 Windows 표시 언어를 따른다.
+        /// </summary>
+        public string? Language { get; init; }
+
         // INTENT: 이 버전이 모르는 항목도 저장할 때 그대로 다시 쓴다. 설정 화면에서 예전 버전으로 되돌릴 수 있으므로,
         // 새 버전이 더한 항목이 예전 버전에서 설정을 한 번 저장하는 것만으로 사라지면 안 된다.
         [JsonExtensionData]

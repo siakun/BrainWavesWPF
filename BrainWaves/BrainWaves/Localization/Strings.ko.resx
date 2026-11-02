@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+한국어 문자열. 영어와 같은 문자열(숫자 범위, 언어 이름)은 두지 않고 Strings.resx의 것을 그대로 쓴다.
+설명 문장은 합니다체로 적는다. 이름 뒤에 조사가 붙는 문장은 받침에 따라 조사가 달라지므로, 이름을 콜론 뒤에 두어 조사를 피한다.
+-->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="Nav.Waves" xml:space="preserve"><value>파형</value></data>
+  <data name="Nav.Waves.Label" xml:space="preserve"><value>파형</value></data>
+  <data name="Nav.Presets" xml:space="preserve"><value>프리셋</value></data>
+  <data name="Nav.Presets.Label" xml:space="preserve"><value>프리셋</value></data>
+  <data name="Nav.Settings" xml:space="preserve"><value>설정</value></data>
+  <data name="Nav.Settings.Label" xml:space="preserve"><value>설정</value></data>
+
+  <data name="Playback.False" xml:space="preserve"><value>재생</value></data>
+  <data name="Playback.True" xml:space="preserve"><value>정지</value></data>
+
+  <data name="Tray.Open" xml:space="preserve"><value>BrainWaves 열기</value></data>
+  <data name="Tray.Quit" xml:space="preserve"><value>BrainWaves 종료</value></data>
+
+  <data name="UpdateBar.Ready" xml:space="preserve"><value>{0} 버전이 준비됐습니다</value></data>
+  <data name="UpdateBar.ReadyCaption" xml:space="preserve"><value>BrainWaves를 닫으면 설치됩니다.</value></data>
+  <data name="UpdateBar.RestartNow" xml:space="preserve"><value>지금 다시 시작</value></data>
+  <data name="Updates.DownloadingVersion" xml:space="preserve"><value>{0} 버전 내려받는 중</value></data>
+
+  <data name="Waves.Beat" xml:space="preserve"><value>바이노럴 비트</value></data>
+  <data name="Waves.MasterVolume.Label" xml:space="preserve"><value>전체 음량</value></data>
+  <data name="Waves.MasterVolume" xml:space="preserve"><value>전체 음량</value></data>
+  <data name="Waves.Left" xml:space="preserve"><value>왼쪽</value></data>
+  <data name="Waves.Right" xml:space="preserve"><value>오른쪽</value></data>
+
+  <data name="Channel.Lower.ToolTip" xml:space="preserve"><value>0.01 Hz 내립니다. 누르고 있으면 계속 내려갑니다.</value></data>
+  <data name="Channel.Raise.ToolTip" xml:space="preserve"><value>0.01 Hz 올립니다. 누르고 있으면 계속 올라갑니다.</value></data>
+  <data name="Channel.Lower.Name" xml:space="preserve"><value>{0} 주파수 낮추기</value></data>
+  <data name="Channel.Raise.Name" xml:space="preserve"><value>{0} 주파수 높이기</value></data>
+  <data name="Channel.Frequency.Name" xml:space="preserve"><value>{0} 주파수</value></data>
+  <data name="Channel.Volume.Name" xml:space="preserve"><value>{0} 음량</value></data>
+
+  <data name="Presets.Title" xml:space="preserve"><value>프리셋</value></data>
+  <data name="Presets.Caption" xml:space="preserve"><value>프리셋을 누르면 재생하고, 한 번 더 누르면 멈춥니다. 자주 듣는 프리셋에 별을 누르면 맨 위에 모입니다.</value></data>
+  <data name="Presets.Favorites" xml:space="preserve"><value>즐겨찾기</value></data>
+  <data name="Presets.Empty" xml:space="preserve"><value>아직 프리셋이 없습니다.</value></data>
+  <data name="Presets.AddToFavorites" xml:space="preserve"><value>즐겨찾기에 추가</value></data>
+  <data name="Presets.RemoveFromFavorites" xml:space="preserve"><value>즐겨찾기에서 제거</value></data>
+  <data name="Presets.AddToFavorites.Name" xml:space="preserve"><value>즐겨찾기에 추가: {0}</value></data>
+  <data name="Presets.RemoveFromFavorites.Name" xml:space="preserve"><value>즐겨찾기에서 제거: {0}</value></data>
+  <data name="Presets.DragToReorder" xml:space="preserve"><value>끌어서 순서 변경</value></data>
+
+  <data name="Preset.visualization" xml:space="preserve"><value>시각화</value></data>
+  <data name="Preset.creative" xml:space="preserve"><value>창의력</value></data>
+  <data name="Preset.focus" xml:space="preserve"><value>집중</value></data>
+  <data name="Preset.work" xml:space="preserve"><value>업무</value></data>
+  <data name="Preset.concentrate" xml:space="preserve"><value>몰입</value></data>
+  <data name="Preset.healing" xml:space="preserve"><value>치유</value></data>
+  <data name="Preset.sleep" xml:space="preserve"><value>수면</value></data>
+  <data name="Preset.deep-sleep" xml:space="preserve"><value>깊은 수면</value></data>
+  <data name="Preset.perception" xml:space="preserve"><value>지각</value></data>
+  <data name="Preset.cognitive-tasks" xml:space="preserve"><value>인지 작업</value></data>
+  <data name="Preset.infra-low" xml:space="preserve"><value>초저주파</value></data>
+  <data name="Preset.meditation" xml:space="preserve"><value>명상</value></data>
+  <data name="Preset.relax" xml:space="preserve"><value>휴식</value></data>
+
+  <data name="Band.above-gamma.Name" xml:space="preserve"><value>감마 이상</value></data>
+  <data name="Band.above-gamma.Description" xml:space="preserve"><value>감마 대역 너머</value></data>
+  <data name="Band.above-gamma.Range" xml:space="preserve"><value>42 Hz 초과</value></data>
+  <data name="Band.gamma.Name" xml:space="preserve"><value>감마</value></data>
+  <data name="Band.gamma.Description" xml:space="preserve"><value>고도의 집중</value></data>
+  <data name="Band.beta.Name" xml:space="preserve"><value>베타</value></data>
+  <data name="Band.beta.Description" xml:space="preserve"><value>활발한 사고</value></data>
+  <data name="Band.alpha.Name" xml:space="preserve"><value>알파</value></data>
+  <data name="Band.alpha.Description" xml:space="preserve"><value>이완</value></data>
+  <data name="Band.theta.Name" xml:space="preserve"><value>세타</value></data>
+  <data name="Band.theta.Description" xml:space="preserve"><value>명상</value></data>
+  <data name="Band.delta.Name" xml:space="preserve"><value>델타</value></data>
+  <data name="Band.delta.Description" xml:space="preserve"><value>수면</value></data>
+  <data name="Band.infra-low.Name" xml:space="preserve"><value>초저주파</value></data>
+  <data name="Band.infra-low.Description" xml:space="preserve"><value>깊은 회복</value></data>
+  <data name="Band.infra-low.Range" xml:space="preserve"><value>0.5 Hz 미만</value></data>
+  <data name="Band.mono.Name" xml:space="preserve"><value>모노</value></data>
+  <data name="Band.mono.Description" xml:space="preserve"><value>비트 없음</value></data>
+
+  <data name="Settings.Title" xml:space="preserve"><value>설정</value></data>
+  <data name="Settings.General" xml:space="preserve"><value>일반</value></data>
+  <data name="Settings.Language" xml:space="preserve"><value>언어</value></data>
+  <data name="Language.System" xml:space="preserve"><value>시스템 설정 따름</value></data>
+  <data name="Settings.Tray" xml:space="preserve"><value>트레이에서 계속 실행</value></data>
+  <data name="Settings.Tray.Caption" xml:space="preserve"><value>창을 닫으면 BrainWaves가 알림 영역(트레이)으로 숨고 소리는 계속 납니다. 끝내려면 트레이 아이콘을 오른쪽 버튼으로 눌러 종료합니다.</value></data>
+  <data name="Settings.Updates" xml:space="preserve"><value>업데이트</value></data>
+  <data name="Settings.CheckNow" xml:space="preserve"><value>지금 확인</value></data>
+  <data name="Settings.AutoUpdate" xml:space="preserve"><value>자동 업데이트</value></data>
+  <data name="Settings.AutoUpdate.Caption" xml:space="preserve"><value>새 버전을 백그라운드에서 내려받아 두었다가 BrainWaves를 닫을 때 설치합니다.</value></data>
+  <data name="Settings.Beta" xml:space="preserve"><value>베타 버전</value></data>
+  <data name="Settings.Beta.Caption" xml:space="preserve"><value>업데이트와 버전 목록에 정식 출시 전 버전을 포함합니다.</value></data>
+  <data name="Settings.OtherVersion" xml:space="preserve"><value>다른 버전 설치</value></data>
+  <data name="Settings.OtherVersion.Caption" xml:space="preserve"><value>최신 버전이 아닌 버전을 고르면 자동 업데이트가 꺼집니다.</value></data>
+  <data name="Settings.Version" xml:space="preserve"><value>버전</value></data>
+  <data name="Settings.Install" xml:space="preserve"><value>설치</value></data>
+  <data name="Settings.Cancel" xml:space="preserve"><value>취소</value></data>
+  <data name="Version.Installed" xml:space="preserve"><value>설치됨</value></data>
+  <data name="Version.Beta" xml:space="preserve"><value>베타</value></data>
+  <data name="Settings.About" xml:space="preserve"><value>정보</value></data>
+  <data name="About.Body" xml:space="preserve"><value>BrainWaves는 양쪽 귀에 조금씩 다른 소리를 들려줍니다. 뇌는 두 소리의 차이를 느린 맥동으로 듣는데, 이것이 바이노럴 비트입니다.</value></data>
+  <data name="About.Headphones" xml:space="preserve"><value>스테레오 헤드폰으로 들어야 합니다. 스피커는 두 소리를 귀에 닿기 전에 섞습니다.</value></data>
+  <data name="About.Source" xml:space="preserve"><value>GitHub 소스 코드</value></data>
+  <data name="About.Report" xml:space="preserve"><value>문제 신고</value></data>
+  <data name="Settings.OpenSource" xml:space="preserve"><value>오픈소스</value></data>
+  <data name="Settings.OpenLinkFailed" xml:space="preserve"><value>링크를 열지 못했습니다({0}). {1}</value></data>
+
+  <data name="Updates.DevBuild" xml:space="preserve"><value>개발 빌드입니다. 업데이트는 설치한 앱에서 동작합니다.</value></data>
+  <data name="Updates.Checking" xml:space="preserve"><value>업데이트를 확인하는 중...</value></data>
+  <data name="Updates.DownloadingStatus" xml:space="preserve"><value>{0} 버전을 내려받는 중...</value></data>
+  <data name="Updates.Restarting" xml:space="preserve"><value>{0} 버전이 준비됐습니다. 설치하려고 BrainWaves를 다시 시작합니다.</value></data>
+  <data name="Updates.Canceled" xml:space="preserve"><value>설치를 취소했습니다.</value></data>
+  <data name="Updates.InstallFailed" xml:space="preserve"><value>{0} 버전을 설치하지 못했습니다. {1}</value></data>
+  <data name="Updates.LoadingVersions" xml:space="preserve"><value>버전 목록을 불러오는 중...</value></data>
+  <data name="Updates.NoVersions" xml:space="preserve"><value>아직 공개된 버전이 없습니다.</value></data>
+  <data name="Updates.VersionsFailed" xml:space="preserve"><value>GitHub에서 버전 목록을 불러오지 못했습니다.</value></data>
+  <data name="Updates.ReadyOnClose" xml:space="preserve"><value>{0} 버전이 준비됐습니다. BrainWaves를 닫으면 설치됩니다.</value></data>
+  <data name="Updates.Unreachable" xml:space="preserve"><value>GitHub에 연결하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.</value></data>
+  <data name="Updates.NoneAvailable" xml:space="preserve"><value>받을 수 있는 업데이트가 없습니다.</value></data>
+  <data name="Updates.LatestIsDev" xml:space="preserve"><value>최신 버전은 {0}입니다. 업데이트는 설치한 앱에서 동작합니다.</value></data>
+  <data name="Updates.UpToDate" xml:space="preserve"><value>최신 버전을 사용하고 있습니다.</value></data>
+  <data name="Updates.AvailablePick" xml:space="preserve"><value>{0} 버전을 받을 수 있습니다. 아래에서 골라 설치합니다.</value></data>
+  <data name="Updates.AvailableNotDownloaded" xml:space="preserve"><value>{0} 버전이 있지만 내려받기를 마치지 못했습니다. 잠시 뒤 다시 시도해 주세요.</value></data>
+  <data name="Updates.SaveFailed" xml:space="preserve"><value>설정을 저장하지 못했습니다. {0}</value></data>
+</root>

@@ -13,6 +13,7 @@
         xmlns:views="clr-namespace:BrainWaves.View"
         xmlns:behaviors="clr-namespace:BrainWaves.Behaviors"
         xmlns:tray="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
+        xmlns:loc="clr-namespace:BrainWaves.Localization"
         mc:Ignorable="d"
         Title="BrainWaves"
         Width="450" MinWidth="450"
@@ -75,15 +76,15 @@
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Style="{StaticResource Text.Title}"
-                               Text="{Binding Updates.ReadyVersion, StringFormat='Version {0} is ready'}"/>
+                               Text="{loc:Text UpdateBar.Ready, Arg={Binding Updates.ReadyVersion}}"/>
                     <TextBlock Style="{StaticResource Text.Caption}"
-                               Text="It installs when you close BrainWaves."/>
+                               Text="{loc:Text UpdateBar.ReadyCaption}"/>
                 </StackPanel>
 
                 <Button Grid.Column="2"
                         Style="{StaticResource Button.Secondary}"
                         Margin="12,0,0,0"
-                        Content="Restart now"
+                        Content="{loc:Text UpdateBar.RestartNow}"
                         Command="{Binding Updates.RestartNowCommand}"/>
             </Grid>
         </Border>
@@ -98,7 +99,7 @@
             <StackPanel>
                 <Grid>
                     <TextBlock Style="{StaticResource Text.Title}"
-                               Text="{Binding Updates.InstallingVersion, StringFormat='Downloading version {0}'}"/>
+                               Text="{loc:Text Updates.DownloadingVersion, Arg={Binding Updates.InstallingVersion}}"/>
                     <TextBlock Style="{StaticResource Text.Readout}"
                                HorizontalAlignment="Right"
                                FontSize="14"
@@ -127,11 +128,11 @@
                              Style="{StaticResource NavTab}"
                              Command="{Binding NavigateFrameCommand}"
                              CommandParameter="pack://application:,,,/View/Waves.xaml"
-                             AutomationProperties.Name="Waves"
+                             AutomationProperties.Name="{loc:Text Nav.Waves}"
                              IsChecked="True">
                     <StackPanel>
                         <materialDesign:PackIcon Kind="SineWave" Width="22" Height="22" HorizontalAlignment="Center"/>
-                        <TextBlock Text="WAVES" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{loc:Text Nav.Waves.Label}" Margin="0,3,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </RadioButton>
 
@@ -139,10 +140,10 @@
                              Style="{StaticResource NavTab}"
                              Command="{Binding NavigateFrameCommand}"
                              CommandParameter="pack://application:,,,/View/Presets.xaml"
-                             AutomationProperties.Name="Presets">
+                             AutomationProperties.Name="{loc:Text Nav.Presets}">
                     <StackPanel>
                         <materialDesign:PackIcon Kind="PlaylistMusicOutline" Width="22" Height="22" HorizontalAlignment="Center"/>
-                        <TextBlock Text="PRESETS" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{loc:Text Nav.Presets.Label}" Margin="0,3,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </RadioButton>
 
@@ -150,10 +151,10 @@
                              Style="{StaticResource NavTab}"
                              Command="{Binding NavigateFrameCommand}"
                              CommandParameter="pack://application:,,,/View/Settings.xaml"
-                             AutomationProperties.Name="Settings">
+                             AutomationProperties.Name="{loc:Text Nav.Settings}">
                     <StackPanel>
                         <materialDesign:PackIcon Kind="CogOutline" Width="22" Height="22" HorizontalAlignment="Center"/>
-                        <TextBlock Text="SETTINGS" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{loc:Text Nav.Settings.Label}" Margin="0,3,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </RadioButton>
 
@@ -181,11 +182,11 @@
                           Visibility="{Binding CloseToTray, Converter={StaticResource BooleanToVisibilityConverter}}">
             <tray:TaskbarIcon.ContextMenu>
                 <ContextMenu FontFamily="{StaticResource Font.Body}">
-                    <MenuItem Header="Open BrainWaves" FontWeight="SemiBold" Click="OnTrayOpenClick"/>
-                    <MenuItem Header="{Binding Audio.IsPlaying, Converter={StaticResource BoolToPlayStopTextConverter}}"
+                    <MenuItem Header="{loc:Text Tray.Open}" FontWeight="SemiBold" Click="OnTrayOpenClick"/>
+                    <MenuItem Header="{loc:Text Source={Binding Audio.IsPlaying}, KeyFormat='Playback.{0}'}"
                               Command="{Binding TogglePlaybackCommand}"/>
                     <Separator/>
-                    <MenuItem Header="Quit BrainWaves" Click="OnTrayQuitClick"/>
+                    <MenuItem Header="{loc:Text Tray.Quit}" Click="OnTrayQuitClick"/>
                 </ContextMenu>
             </tray:TaskbarIcon.ContextMenu>
         </tray:TaskbarIcon>

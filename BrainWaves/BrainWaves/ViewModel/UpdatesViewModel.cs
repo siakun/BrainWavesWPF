@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using BrainWaves.Localization;
 using BrainWaves.Model;
 using BrainWaves.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -47,7 +48,7 @@ namespace BrainWaves.ViewModel
 
             IsManagedInstall = _updates.IsManagedInstall;
             CurrentVersion = _updates.CurrentVersion?.ToNormalizedString() ?? AppInfo.BuildVersion;
-            if (!IsManagedInstall) StatusText = "This is a development build. Updates work in the installed app.";
+            if (!IsManagedInstall) StatusText = new LocalizedText("Updates.DevBuild");
         }
 
         /// <summary>
@@ -103,9 +104,10 @@ namespace BrainWaves.ViewModel
 
         /// <summary>
         /// 마지막으로 한 확인이나 설치의 결과를 사용자에게 설명하는 문장. 알릴 것이 없으면 null.
+        /// 언어를 바꾸면 화면이 다시 만들 수 있게 완성된 문자열이 아니라 키와 인자로 둔다.
         /// </summary>
         [ObservableProperty]
-        private string? statusText;
+        private LocalizedText? statusText;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CanPickVersion))]
@@ -124,7 +126,7 @@ namespace BrainWaves.ViewModel
         /// 버전 목록이 비어 있거나 불러오는 중일 때 그 사정을 알리는 문장.
         /// </summary>
         [ObservableProperty]
-        private string? versionsHint;
+        private LocalizedText? versionsHint;
 
         /// <summary>
         /// 앱 화면을 띄운 뒤 한 번 호출한다. 새 버전을 받으면 ReadyVersion이 채워진다.
@@ -145,7 +147,7 @@ namespace BrainWaves.ViewModel
         [RelayCommand(CanExecute = nameof(CanCheckForUpdates))]
         private async Task CheckForUpdatesAsync()
         {
-            StatusText = "Checking for updates...";
+            StatusText = new LocalizedText("Updates.Checking");
             await _updates.CheckAndDownloadAsync();
             await (_versionsLoad = LoadVersionsAsync());
             StatusText = DescribeCheckResult();
@@ -168,7 +170,7 @@ namespace BrainWaves.ViewModel
             InstallProgress = 0;
             DownloadSize = null;
             IsInstalling = true;
-            StatusText = $"Downloading version {target.Version}...";
+            StatusText = new LocalizedText("Updates.DownloadingStatus", target.Version);
 
             // UI 스레드에서 만든 Progress는 다운로드 스레드의 보고를 UI 스레드로 옮겨 준다.
             var progress = new Progress<int>(value => InstallProgress = value);
@@ -181,15 +183,15 @@ namespace BrainWaves.ViewModel
                     progress: ((IProgress<int>)progress).Report,
                     onDownloadSizeResolved: ((IProgress<long>)size).Report,
                     cancelToken: cancellation.Token);
-                StatusText = $"Version {target.Version} is ready. BrainWaves is restarting to install it.";
+                StatusText = new LocalizedText("Updates.Restarting", target.Version);
             }
             catch (OperationCanceledException)
             {
-                StatusText = "Installation canceled.";
+                StatusText = new LocalizedText("Updates.Canceled");
             }
             catch (Exception ex)
             {
-                StatusText = $"Couldn't install version {target.Version}. {ex.Message}";
+                StatusText = new LocalizedText("Updates.InstallFailed", target.Version, ex.Message);
             }
             finally
             {
@@ -212,7 +214,7 @@ namespace BrainWaves.ViewModel
         {
             // 베타 설정을 연달아 바꾸면 요청이 겹친다. 늦게 끝난 옛 요청이 새 목록을 덮지 않게 한다.
             var generation = ++_versionsGeneration;
-            VersionsHint = "Loading versions...";
+            VersionsHint = new LocalizedText("Updates.LoadingVersions");
 
             try
             {
@@ -222,7 +224,7 @@ namespace BrainWaves.ViewModel
                 var current = _updates.CurrentVersion;
                 Versions = releases.Select(release => new VersionOption(release, release.Version == current)).ToList();
                 SelectedVersion = Versions.FirstOrDefault(option => option.IsCurrent) ?? Versions.FirstOrDefault();
-                VersionsHint = Versions.Count == 0 ? "No versions have been published yet." : null;
+                VersionsHint = Versions.Count == 0 ? new LocalizedText("Updates.NoVersions") : null;
                 _versionsFailed = false;
             }
             catch (Exception ex)
@@ -232,31 +234,32 @@ namespace BrainWaves.ViewModel
                 System.Diagnostics.Debug.WriteLine($"[UpdatesViewModel] Version list failed: {ex.Message}");
                 Versions = Array.Empty<VersionOption>();
                 SelectedVersion = null;
-                VersionsHint = "Couldn't load the version list from GitHub.";
+                VersionsHint = new LocalizedText("Updates.VersionsFailed");
                 _versionsFailed = true;
             }
         }
 
-        private string DescribeCheckResult()
+        private LocalizedText DescribeCheckResult()
         {
             if (ReadyVersion is not null)
-                return $"Version {ReadyVersion} is ready. It installs when you close BrainWaves.";
+                return new LocalizedText("Updates.ReadyOnClose", ReadyVersion);
             if (_versionsFailed)
-                return "Couldn't reach GitHub. Check your connection and try again.";
+                return new LocalizedText("Updates.Unreachable");
 
             // 목록이 비었다는 사정은 목록 아래 안내(VersionsHint)가 알리므로 여기서는 결과만 말한다.
             var latest = Versions.FirstOrDefault()?.Release;
             if (latest is null)
-                return "No updates are available.";
+                return new LocalizedText("Updates.NoneAvailable");
 
+            var latestVersion = latest.Version.ToNormalizedString();
             var current = _updates.CurrentVersion;
             if (current is null)
-                return $"The latest version is {latest.Version.ToNormalizedString()}. Updates work in the installed app.";
+                return new LocalizedText("Updates.LatestIsDev", latestVersion);
             if (latest.Version <= current)
-                return "You're on the latest version.";
+                return new LocalizedText("Updates.UpToDate");
             if (!AutoUpdateEnabled)
-                return $"Version {latest.Version.ToNormalizedString()} is available. Pick it below to install it.";
-            return $"Version {latest.Version.ToNormalizedString()} is available, but the download didn't finish. Try again later.";
+                return new LocalizedText("Updates.AvailablePick", latestVersion);
+            return new LocalizedText("Updates.AvailableNotDownloaded", latestVersion);
         }
 
         private bool ChangeSetting(Func<AppSettings, AppSettings> change)
@@ -268,7 +271,7 @@ namespace BrainWaves.ViewModel
             }
             catch (Exception ex)
             {
-                StatusText = $"Couldn't save the setting. {ex.Message}";
+                StatusText = new LocalizedText("Updates.SaveFailed", ex.Message);
                 // 저장하지 못한 값으로 스위치가 남지 않게 원래 값을 다시 읽힌다.
                 OnPropertyChanged(nameof(AutoUpdateEnabled));
                 OnPropertyChanged(nameof(PrereleaseEnabled));
@@ -284,6 +287,9 @@ namespace BrainWaves.ViewModel
     {
         public string Version => Release.Version.ToNormalizedString();
 
-        public string? Tag => IsCurrent ? "installed" : Release.IsPrerelease ? "beta" : null;
+        public LocalizedText? Tag =>
+            IsCurrent ? new LocalizedText("Version.Installed")
+            : Release.IsPrerelease ? new LocalizedText("Version.Beta")
+            : null;
     }
 }

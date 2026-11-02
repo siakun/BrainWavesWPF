@@ -236,7 +236,7 @@ namespace BrainWaves.ViewModel
         [ObservableProperty]
         private bool isFavorite;
 
-        public PresetDataViewModel(PresetData preset) : base(preset.Id, preset.PresetName, preset.LeftWave, preset.RightWave)
+        public PresetDataViewModel(PresetData preset) : base(preset.Id, preset.LeftWave, preset.RightWave)
         {
         }
     }

@@ -9,6 +9,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:services="clr-namespace:BrainWaves.Services"
+             xmlns:loc="clr-namespace:BrainWaves.Localization"
              mc:Ignorable="d"
              d:DesignWidth="200"
              x:Name="Root">
@@ -46,8 +47,8 @@
                               Style="{StaticResource Button.Round}"
                               Command="{Binding DecreaseCommand, ElementName=Root}"
                               Delay="400" Interval="40"
-                              ToolTip="Lower by 0.01 Hz. Hold to keep lowering."
-                              AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='Lower {0} frequency'}">
+                              ToolTip="{loc:Text Channel.Lower.ToolTip}"
+                              AutomationProperties.Name="{loc:Text Channel.Lower.Name, Arg={Binding Title, ElementName=Root}}">
                     <materialDesign:PackIcon Kind="Minus" Width="16" Height="16"/>
                 </RepeatButton>
                 <Slider Grid.Column="1"
@@ -57,13 +58,13 @@
                         TickFrequency="10" IsSnapToTickEnabled="True"
                         Foreground="{Binding ChannelBrush, ElementName=Root}"
                         Value="{Binding Frequency, ElementName=Root, Mode=TwoWay}"
-                        AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='{}{0} frequency'}"/>
+                        AutomationProperties.Name="{loc:Text Channel.Frequency.Name, Arg={Binding Title, ElementName=Root}}"/>
                 <RepeatButton Grid.Column="2"
                               Style="{StaticResource Button.Round}"
                               Command="{Binding IncreaseCommand, ElementName=Root}"
                               Delay="400" Interval="40"
-                              ToolTip="Raise by 0.01 Hz. Hold to keep raising."
-                              AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='Raise {0} frequency'}">
+                              ToolTip="{loc:Text Channel.Raise.ToolTip}"
+                              AutomationProperties.Name="{loc:Text Channel.Raise.Name, Arg={Binding Title, ElementName=Root}}">
                     <materialDesign:PackIcon Kind="Plus" Width="16" Height="16"/>
                 </RepeatButton>
             </Grid>
@@ -84,7 +85,7 @@
                         Maximum="{x:Static services:AudioService.MaxLevel}"
                         Foreground="{StaticResource Brush.TextMuted}"
                         Value="{Binding Gain, ElementName=Root, Mode=TwoWay}"
-                        AutomationProperties.Name="{Binding Title, ElementName=Root, StringFormat='{}{0} volume'}"/>
+                        AutomationProperties.Name="{loc:Text Channel.Volume.Name, Arg={Binding Title, ElementName=Root}}"/>
                 <TextBlock Grid.Column="2"
                            Style="{StaticResource Text.Readout}"
                            FontSize="13"

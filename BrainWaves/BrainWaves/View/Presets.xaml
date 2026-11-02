@@ -15,6 +15,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:vm="clr-namespace:BrainWaves.ViewModel"
       xmlns:behaviors="clr-namespace:BrainWaves.Behaviors"
+      xmlns:loc="clr-namespace:BrainWaves.Localization"
       mc:Ignorable="d"
       d:DesignHeight="1250" d:DesignWidth="450"
       behaviors:WindowAutoFit.FitsContent="False"
@@ -36,12 +37,12 @@
     <Page.Resources>
         <!-- 별 버튼의 설명과 화면 낭독기 이름은 지금 상태에서 누르면 일어날 일을 말한다. -->
         <Style x:Key="FavoriteButton" TargetType="Button" BasedOn="{StaticResource Button.Icon}">
-            <Setter Property="ToolTip" Value="Add to favorites"/>
-            <Setter Property="AutomationProperties.Name" Value="{Binding PresetName, StringFormat='Add {0} to favorites'}"/>
+            <Setter Property="ToolTip" Value="{loc:Text Presets.AddToFavorites}"/>
+            <Setter Property="AutomationProperties.Name" Value="{loc:Text Presets.AddToFavorites.Name, Arg={Binding Id}, ArgKeyFormat='Preset.{0}'}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsFavorite}" Value="True">
-                    <Setter Property="ToolTip" Value="Remove from favorites"/>
-                    <Setter Property="AutomationProperties.Name" Value="{Binding PresetName, StringFormat='Remove {0} from favorites'}"/>
+                    <Setter Property="ToolTip" Value="{loc:Text Presets.RemoveFromFavorites}"/>
+                    <Setter Property="AutomationProperties.Name" Value="{loc:Text Presets.RemoveFromFavorites.Name, Arg={Binding Id}, ArgKeyFormat='Preset.{0}'}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -79,7 +80,7 @@
         <Style x:Key="DragHandle" TargetType="Border">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Cursor" Value="SizeNS"/>
-            <Setter Property="ToolTip" Value="Drag to reorder"/>
+            <Setter Property="ToolTip" Value="{loc:Text Presets.DragToReorder}"/>
             <Setter Property="TextElement.Foreground" Value="{StaticResource Brush.TextFaint}"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
@@ -100,7 +101,7 @@
                     Margin="0,1"
                     Command="{Binding DataContext.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                     CommandParameter="{Binding}"
-                    AutomationProperties.Name="{Binding PresetName}">
+                    AutomationProperties.Name="{loc:Text Source={Binding Id}, KeyFormat='Preset.{0}'}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -177,7 +178,7 @@
                     </Button>
 
                     <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                        <TextBlock Style="{StaticResource Text.Title}" Text="{Binding PresetName}"/>
+                        <TextBlock Style="{StaticResource Text.Title}" Text="{loc:Text Source={Binding Id}, KeyFormat='Preset.{0}'}"/>
                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                             <Ellipse Width="5" Height="5" VerticalAlignment="Center" Fill="{StaticResource Brush.ChannelLeft}"/>
                             <TextBlock Style="{StaticResource Text.Readout}"
@@ -248,9 +249,9 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="16,20,16,20">
-                <TextBlock Style="{StaticResource Text.PageTitle}" Margin="4,0,0,0" Text="Presets"/>
+                <TextBlock Style="{StaticResource Text.PageTitle}" Margin="4,0,0,0" Text="{loc:Text Presets.Title}"/>
                 <TextBlock Style="{StaticResource Text.Caption}" Margin="4,4,0,0"
-                           Text="Click a preset to play it. Click it again to stop. Star the ones you use most to keep them at the top."/>
+                           Text="{loc:Text Presets.Caption}"/>
 
                 <!-- 즐겨찾기. 하나도 없으면 묶음째 감춘다. 머리 모양은 아래 대역 묶음과 맞춘다. -->
                 <StackPanel Margin="0,20,0,0"
@@ -263,7 +264,7 @@
                         <TextBlock Style="{StaticResource Text.Title}"
                                    Margin="10,0,0,0"
                                    VerticalAlignment="Center"
-                                   Text="Favorites"/>
+                                   Text="{loc:Text Presets.Favorites}"/>
                     </StackPanel>
 
                     <Border Style="{StaticResource Card}" Padding="4">
@@ -291,16 +292,16 @@
                                         <TextBlock Style="{StaticResource Text.Title}"
                                                    Margin="10,0,0,0"
                                                    VerticalAlignment="Center"
-                                                   Text="{Binding Band.Name}"/>
+                                                   Text="{loc:Text Source={Binding Band.Id}, KeyFormat='Band.{0}.Name'}"/>
                                         <TextBlock Style="{StaticResource Text.Caption}"
                                                    Margin="8,0,0,0"
                                                    VerticalAlignment="Center"
-                                                   Text="{Binding Band.Description}"/>
+                                                   Text="{loc:Text Source={Binding Band.Id}, KeyFormat='Band.{0}.Description'}"/>
                                     </StackPanel>
                                     <TextBlock Style="{StaticResource Text.Label}"
                                                HorizontalAlignment="Right"
                                                VerticalAlignment="Center"
-                                               Text="{Binding Band.Range}"/>
+                                               Text="{loc:Text Source={Binding Band.Id}, KeyFormat='Band.{0}.Range'}"/>
                                 </Grid>
 
                                 <Border Style="{StaticResource Card}" Padding="4">
@@ -317,7 +318,7 @@
                 <TextBlock Style="{StaticResource Text.Caption}"
                            Margin="4,40,0,0"
                            HorizontalAlignment="Center"
-                           Text="No presets yet."
+                           Text="{loc:Text Presets.Empty}"
                            Visibility="{Binding IsPresetListEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </StackPanel>
         </ScrollViewer>

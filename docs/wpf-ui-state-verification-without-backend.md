@@ -172,6 +172,31 @@ foreach (var actions in new[] { "Activate, AbsoluteMove", "Button1Press", "Butto
 
 생성자 인자 순서와 형식 이름은 비공개 구현이라 WPF 버전이 바뀌면 깨질 수 있습니다. 실패하면 dotnet/wpf 저장소의 `RawKeyboardInputReport.cs`, `RawMouseInputReport.cs`에서 현재 생성자를 확인합니다.
 
+## 실제 마우스로 끌기를 확인할 때
+
+위 원시 보고로는 버튼 상태가 `Released`로 나와 `ButtonBase`가 눌리지 않으므로, "안쪽 요소가 바깥 버튼의 클릭을 막는가"처럼 클릭이 일어나는지가 결과인 검사는 구별되지 않습니다. 끌기와 그 검사는 검증 프로그램 안에서 실제 마우스 입력을 보내 확인합니다. 사용자의 실제 커서가 움직이므로 실행 전에 알립니다.
+
+```csharp
+[DllImport("user32.dll")] static extern bool SetCursorPos(int x, int y);
+[DllImport("user32.dll")] static extern void mouse_event(uint flags, int dx, int dy, uint data, UIntPtr extra);
+const uint LEFTDOWN = 0x02, LEFTUP = 0x04;
+
+var p = handle.PointToScreen(new Point(handle.ActualWidth / 2, handle.ActualHeight / 2));
+SetCursorPos((int)Math.Round(p.X), (int)Math.Round(p.Y)); Pump(80);
+mouse_event(LEFTDOWN, 0, 0, 0, UIntPtr.Zero); Pump(60);
+foreach (var point in path) { SetCursorPos(...); Pump(18); }   // 끄는 경로
+mouse_event(LEFTUP, 0, 0, 0, UIntPtr.Zero); Pump(60);
+```
+
+확인한 주의점은 다음과 같습니다.
+
+- 이 방법에서는 버튼 상태가 `Pressed`로 들어와 마우스 붙잡기와 버튼 클릭이 실제와 같이 일어납니다. 손잡이 검사를 믿으려면 같은 줄의 다른 곳을 눌러 클릭되는 대조군을 함께 둡니다.
+- 좌표는 같은 프로세스의 `PointToScreen` 값을 `SetCursorPos`에 그대로 넣었고, 150% 배율 화면에서 맞았습니다. 다른 배율이나 여러 모니터에서는 확인하지 않았습니다.
+- 끄는 경로의 화면 좌표는 끌기 전에 모두 계산해 둡니다. 끄는 도중 자동 스크롤로 목록이 움직이면, 매 단계 목록 기준으로 다시 계산한 좌표는 목록을 따라 움직여 커서가 의도한 화면 위치로 가지 않습니다.
+- 창을 띄우자마자 검사를 시작했을 때는 첫 검사인 행 클릭 대조군이 재생으로 이어지지 않았고, 나중에 Esc를 보낼 때 검증 창이 활성 창이 아니었습니다. 창의 활성화 이벤트를 기록해 보니 띄운 직후 활성화됐다가 곧 비활성화됐습니다. 시작할 때 페이지 제목처럼 아무 동작이 없는 곳을 한 번 눌러 활성 창으로 만든 뒤에는 모든 클릭과 Esc가 들어갔습니다. 첫 클릭이 실패한 원인은 확인하지 않았습니다.
+- 실제 키 입력(`keybd_event`)은 활성 창으로 가므로, 보내기 전에 `GetForegroundWindow()`가 검증 창인지 확인하고 아니면 건너뜁니다.
+- 검사가 예외로 끝나도 왼쪽 버튼이 눌린 채 남지 않도록 `finally`에서 `LEFTUP`을 보내고 커서를 원래 자리로 돌려놓습니다.
+
 ## Windows 설정에 따라 달라지는 동작
 
 `SystemParameters`의 값은 처음 읽을 때 OS에서 가져와 비공개 정적 필드에 담아 두고 이후에는 그 필드를 돌려줍니다. 검증 프로그램에서는 한 번 읽어 필드를 채운 뒤 리플렉션으로 값을 바꿔 두 설정을 모두 확인하고, 끝나면 원래 값으로 돌려놓습니다. Windows 설정 자체는 바꾸지 않습니다.
